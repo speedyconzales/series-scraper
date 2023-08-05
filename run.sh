@@ -2,7 +2,7 @@
 
 SCRIPT_PATH="main.py"
 TYPE="anime"
-NAME="beyblade"
+NAME="blue-dragon"
 LANGUAGE="Deutsch" # most common: ["Deutsch","Ger-Sub","English"]
 NUM_RUNS=1
 

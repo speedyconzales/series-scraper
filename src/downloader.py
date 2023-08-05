@@ -28,7 +28,7 @@ def download(link, file_name):
             for chunk in r.iter_content(1024):
                 f.write(chunk)
         if path.getsize(file_name) != 0:
-            logger.info(MODULE_LOGGER_HEAD + "Finished download of {}.".format(file_name))
+            logger.success(MODULE_LOGGER_HEAD + "Finished download of {}.".format(file_name))
             break
         elif retry_count == 1:
             logger.error(MODULE_LOGGER_HEAD + "Server error. Could not download {}. Please manually download it later.".format(file_name))
@@ -46,12 +46,12 @@ def download_and_convert_hls_stream(hls_url, file_name):
         if platform.system() == "Windows":
             subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
-            subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)    
-        logger.info(MODULE_LOGGER_HEAD + "Finished download of {}.".format(file_name))
+            subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        logger.success(MODULE_LOGGER_HEAD + "Finished download of {}.".format(file_name))
     except subprocess.CalledProcessError as e:
-        os.remove(file_name)
-        logger.debug(MODULE_LOGGER_HEAD + str(e))
-        logger.error(MODULE_LOGGER_HEAD + "Server error. Could not download {}. Please manually download it later.".format(file_name))
+        os.remove(file_name) if os.path.exists(file_name) else None
+        logger.error(MODULE_LOGGER_HEAD + str(e))
+        logger.error(MODULE_LOGGER_HEAD + "Could not download {}. Please manually download it later.".format(file_name))
 
 
 def create_new_download_thread(url, file_name, provider):

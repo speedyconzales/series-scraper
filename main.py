@@ -45,10 +45,10 @@ def main(ddos_start_value, ddos_protection_number, ddos_wait_timer, site_url):
         season_path = f"{output_path}/Season {season:02}"
         os.makedirs(season_path, exist_ok=True)
         episodes = get_episodes(url, season) if desired_episode == 0 else desired_episode
-        logger.info(MODULE_LOGGER_HEAD + "Season {} has {} Episodes.".format(season, len(episodes)))
+        logger.info(MODULE_LOGGER_HEAD + "Season {} has {} Episodes.".format(season, len(get_episodes(url,season))))
 
         for episode in episodes:
-            file_name = "{}/{} - s{:02}e{:02} - {}.mp4".format(season_path, output_path, season, episode, language)
+            file_name = "{}/{} - s{:02}e{:0{width}} - {}.mp4".format(season_path, output_path, season, episode, language, width=3 if len(episodes) > 99 else 2)
             logger.info(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
             if not already_downloaded(file_name):
                 episode_link = url + "staffel-{}/episode-{}".format(season, episode)
@@ -57,7 +57,6 @@ def main(ddos_start_value, ddos_protection_number, ddos_wait_timer, site_url):
                 except LanguageError:
                     continue
                 if ddos_start_value < ddos_protection_number:
-                    logger.debug(MODULE_LOGGER_HEAD + "Entered DDOS var check and starting new downloader.")
                     ddos_start_value += 1
                 else:
                     logger.info(MODULE_LOGGER_HEAD + "Started {} Downloads. Waiting for {} Seconds to not trigger DDOS"

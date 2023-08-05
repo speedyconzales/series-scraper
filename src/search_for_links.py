@@ -38,8 +38,6 @@ def get_redirect_link_by_provider(episode_link, language):
 
 
 def get_redirect_link(episode_link, language, provider):
-    # if you encounter issues with captchas use this line below
-    # html_link = open_captcha_window(html_link)
     html_response = urllib.request.urlopen(episode_link)
     href_value = get_href_by_language(html_response, language, provider)
     parsed_url = urlsplit(episode_link)
@@ -50,7 +48,6 @@ def get_redirect_link(episode_link, language, provider):
      
 
 def find_content_url(url, provider):
-    logger.debug(MODULE_LOGGER_HEAD + "Entered {} to cache".format(provider))
     try:
         html_page = urllib.request.urlopen(url)
     except URLError as e:
@@ -68,12 +65,9 @@ def find_content_url(url, provider):
             return find_content_url(url, provider)
         content_link = "https://" + provider + ".com/" + content_link.group()[:-1]
         logger.debug(MODULE_LOGGER_HEAD + f"This is the found video link of {provider}: {content_link}")
-        
-    logger.debug(MODULE_LOGGER_HEAD + "Exiting {} to Cache".format(provider))
     return content_link
 
 def get_season(url_path) -> list:
-    logger.debug(MODULE_LOGGER_HEAD + "Entered get_season.")
     logger.debug(MODULE_LOGGER_HEAD + "Site URL is: " + url_path)
     counter_seasons = 1
     html_page = urllib.request.urlopen(url_path, timeout=50)
@@ -82,13 +76,11 @@ def get_season(url_path) -> list:
         href = str(link.get("href"))
         if "/staffel-{}".format(counter_seasons) in href:
             counter_seasons += 1
-    logger.debug(MODULE_LOGGER_HEAD + "Now leaving Function get_season")
     seasons = [i for i in range(1, counter_seasons)]
     return seasons
 
 
 def get_episodes(url_path, season) -> list:
-    logger.debug(MODULE_LOGGER_HEAD + "Entered get_episodes")
     url = "{}staffel-{}/".format(url_path, season)
     counter_episodes = 1
     html_page = urllib.request.urlopen(url, timeout=50)
@@ -97,6 +89,5 @@ def get_episodes(url_path, season) -> list:
         href = str(link.get("href"))
         if "/staffel-{}/episode-{}".format(season, counter_episodes) in href:
             counter_episodes += 1
-    logger.debug(MODULE_LOGGER_HEAD + "Now leaving Function get_episodes")
     episodes = [i for i in range(1, counter_episodes)]
     return episodes
