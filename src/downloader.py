@@ -54,10 +54,16 @@ def download_and_convert_hls_stream(hls_url, file_name):
         logger.error(MODULE_LOGGER_HEAD + "Could not download {}. Please manually download it later.".format(file_name))
 
 
-def create_new_download_thread(url, file_name, provider):
-    logger.debug(MODULE_LOGGER_HEAD + "Entered Downloader.")
-    if provider in ["Vidoza","Streamtape"]:
-        threading.Thread(target=download, args=(url, file_name)).start()
-    elif provider == "VOE":
-        threading.Thread(target=download_and_convert_hls_stream, args=(url, file_name)).start()
+def download_episode(url, file_name, provider):
     logger.info(MODULE_LOGGER_HEAD + "File {} added to queue.".format(file_name))
+    if provider in ["Vidoza","Streamtape"]:
+        download(url, file_name)
+    elif provider == "VOE":
+        download_and_convert_hls_stream(url, file_name)
+
+
+def create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, provider):
+     with thread_semaphore:
+        thread = threading.Thread(target=download_episode,args=[content_url,file_name,provider])
+        active_threads.append(thread)
+        thread.start()

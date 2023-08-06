@@ -1,45 +1,26 @@
 import os
 import time
-import argparse
+import threading
 
-from src.search_for_links import find_content_url, get_redirect_link_by_provider, get_season, get_episodes
+from src.search_for_links import find_content_url, get_redirect_link_by_provider, get_episodes
 from src.downloader import create_new_download_thread, already_downloaded
-from src.language import LanguageError
+from src.language import LanguageError, ProviderError
 from src.logger import Logger as logger
+from src.argument_parser import ArgumentParser
 
 MODULE_LOGGER_HEAD = "main.py -> "
 
 
-def setup_arguments(site_url):
-    parser = argparse.ArgumentParser(description="S.to - Scraper")
+def main(concurrent_downloads=5):
     
-    parser.add_argument("type", choices=["serie","anime"], help="specify the type of the content")
-    parser.add_argument("name", type=str, help="name of the content")
-    parser.add_argument("language", type=str, help="desired language of the content")
-    
-    parser.add_argument("-s", "--season", type=int, help="specify the season")
-    parser.add_argument("-e", "--episode", type=int, help="specify the episode")
-    
-    args = parser.parse_args()
-    
-    if args.episode and not args.season:
-        parser.error("You have to specify a season in order to specify an episode")
-
-    url = "{}/{}/stream/{}/".format(site_url[args.type], args.type, args.name)
-    output_path = args.name.replace("-"," ").title()
-    seasons = [args.season] if args.season else get_season(url)
-    episodes = [args.episode] if args.episode else 0
-
-    return args.language,url,output_path,seasons,episodes
-
-
-def main(ddos_start_value, ddos_protection_number, ddos_wait_timer, site_url):
-    
-    language,url,output_path,seasons,desired_episode = setup_arguments(site_url)
+    language, url, output_path, seasons, desired_episode = ArgumentParser.args.language, ArgumentParser.url, ArgumentParser.output_path, ArgumentParser.seasons, ArgumentParser.episodes
 
     logger.info("------------- AnimeSerienScraper started ------------")
-
+    
     os.makedirs(output_path, exist_ok=True)
+
+    thread_semaphore = threading.Semaphore(concurrent_downloads)
+    active_threads: list[threading.Thread] = []
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"
@@ -54,28 +35,20 @@ def main(ddos_start_value, ddos_protection_number, ddos_wait_timer, site_url):
                 episode_link = url + "staffel-{}/episode-{}".format(season, episode)
                 try:
                     redirect_link, provider = get_redirect_link_by_provider(episode_link, language)
-                except LanguageError:
+                except (LanguageError, ProviderError):
                     continue
-                if ddos_start_value < ddos_protection_number:
-                    ddos_start_value += 1
-                else:
-                    logger.info(MODULE_LOGGER_HEAD + "Started {} Downloads. Waiting for {} Seconds to not trigger DDOS"
-                                                    "Protection.".format(ddos_protection_number, ddos_wait_timer))
-                    time.sleep(ddos_wait_timer)
-                    ddos_start_value = 1
                 content_url = find_content_url(redirect_link, provider)
                 logger.debug(MODULE_LOGGER_HEAD + "{} content URL is: ".format(provider) + content_url)
-                create_new_download_thread(content_url, file_name, provider)
+                create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, provider)
+                while len(active_threads) >= concurrent_downloads:
+                    time.sleep(1)
+                    active_threads = [t for t in active_threads if t.is_alive()]
+
+    for thread in active_threads:
+        thread.join()
+
 
 
 if __name__ == "__main__":
-    site_url = {"serie": "https://s.to", # maybe you need another dns to be able to use this site
-                "anime": "https://aniworld.to"}
-    try:
-        main(0, 5, 60, site_url)
-    except KeyboardInterrupt:
-        logger.info("-----------------------------------------------------------")
-        logger.info("            AnimeSerienScraper Stopped")
-        logger.info("-----------------------------------------------------------")
-        logger.info("Downloads may still be running. Please dont close this Window until its done.")
-        logger.info("You will know its done once you see your primary prompt string. Example: C:\\XXX or username@hostname:")
+    main()
+    logger.info("------------- AnimeSerienScraper stopped ------------")
