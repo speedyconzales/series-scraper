@@ -16,7 +16,7 @@ def main(concurrent_downloads=5):
     language, url, output_path, seasons, desired_episode = ArgumentParser.args.language, ArgumentParser.url, ArgumentParser.output_path, ArgumentParser.seasons, ArgumentParser.episodes
 
     logger.info("------------- AnimeSerienScraper started ------------")
-    
+
     os.makedirs(output_path, exist_ok=True)
 
     thread_semaphore = threading.Semaphore(concurrent_downloads)
@@ -30,7 +30,7 @@ def main(concurrent_downloads=5):
 
         for episode in episodes:
             file_name = "{}/{} - s{:02}e{:0{width}} - {}.mp4".format(season_path, output_path, season, episode, language, width=3 if len(episodes) > 99 else 2)
-            logger.info(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
+            logger.debug(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
             if not already_downloaded(file_name):
                 episode_link = url + "staffel-{}/episode-{}".format(season, episode)
                 try:
@@ -39,7 +39,8 @@ def main(concurrent_downloads=5):
                     continue
                 content_url = find_content_url(redirect_link, provider)
                 logger.debug(MODULE_LOGGER_HEAD + "{} content URL is: ".format(provider) + content_url)
-                create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, provider)
+                create_new_download_thread(thread_semaphore, active_threads, content_url, file_name)
+                logger.info(MODULE_LOGGER_HEAD + f"Max number of concurrent downloads = {concurrent_downloads} reached. Waiting for downloads to complete.") if len(active_threads) >= concurrent_downloads else None
                 while len(active_threads) >= concurrent_downloads:
                     time.sleep(1)
                     active_threads = [t for t in active_threads if t.is_alive()]
@@ -50,5 +51,8 @@ def main(concurrent_downloads=5):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
     logger.info("------------- AnimeSerienScraper stopped ------------")
