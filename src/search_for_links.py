@@ -1,8 +1,9 @@
 import re
 import urllib.request
+
 from urllib.error import URLError
 from bs4 import BeautifulSoup
-from urllib.parse import urlsplit,urlunsplit
+from urllib.parse import urlsplit, urlunsplit
 from .language import get_href_by_language
 from .language import ProviderError
 from .logger import Logger as logger
@@ -74,7 +75,7 @@ def get_season(url_path) -> list:
     soup = BeautifulSoup(html_page, features="html.parser")
     for link in soup.findAll('a'):
         href = str(link.get("href"))
-        if "/staffel-{}".format(counter_seasons) in href:
+        if f"/staffel-{counter_seasons}" in href:
             counter_seasons += 1
     seasons = [i for i in range(1, counter_seasons)]
     return seasons
@@ -87,7 +88,7 @@ def get_episodes(url_path, season) -> list:
     soup = BeautifulSoup(html_page, features="html.parser")
     for link in soup.findAll('a'):
         href = str(link.get("href"))
-        if "/staffel-{}/episode-{}".format(season, counter_episodes) in href:
+        if f"/staffel-{season}/episode-{counter_episodes}" in href:
             counter_episodes += 1
     episodes = [i for i in range(1, counter_episodes)]
     return episodes

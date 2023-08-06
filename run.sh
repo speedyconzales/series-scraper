@@ -2,7 +2,7 @@
 
 SCRIPT_PATH="main.py"
 TYPE="anime"
-NAME="blue-dragon"
+NAME="the-misfit-of-demon-king-academy"
 LANGUAGE="Deutsch" # most common: ["Deutsch","Ger-Sub","English"]
 NUM_RUNS=1
 
