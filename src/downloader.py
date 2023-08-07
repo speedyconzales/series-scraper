@@ -21,7 +21,7 @@ def already_downloaded(file_name):
     return False
 
 
-def download_episode(url, file_name):
+def download_episode(url, file_name, episode):
     try:
         ffmpeg_cmd = ['ffmpeg', '-i', url, '-c', 'copy', file_name]
         logger.info(MODULE_LOGGER_HEAD + f"Episode '{file_name}' added to queue.")
@@ -34,11 +34,10 @@ def download_episode(url, file_name):
         os.remove(file_name) if os.path.exists(file_name) else None
         logger.error(MODULE_LOGGER_HEAD + str(e))
         logger.error(MODULE_LOGGER_HEAD + f"Could not download {file_name}. Please manually download it later.")
-        raise ProviderError
 
 
-def create_new_download_thread(thread_semaphore, active_threads, content_url, file_name):
+def create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, episode):
      with thread_semaphore:
-        thread = threading.Thread(target=download_episode,args=[content_url,file_name])
+        thread = threading.Thread(target=download_episode,args=[content_url, file_name, episode])
         active_threads.append(thread)
         thread.start()

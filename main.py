@@ -11,6 +11,7 @@ from src.argument_parser import ArgumentParser
 
 MODULE_LOGGER_HEAD = "main.py -> "
 
+pending_episodes = []
 
 def check_active_threads(active_threads, concurrent_downloads):
     active_threads = [t for t in active_threads if t.is_alive()]
@@ -20,11 +21,11 @@ def check_active_threads(active_threads, concurrent_downloads):
         active_threads = [t for t in active_threads if t.is_alive()]
 
 
-def check_episodes(active_threads, thread_semaphore, concurrent_downloads, season_path, output_path, url, season, episodes, language, provider):
+def check_episodes(active_threads, thread_semaphore, concurrent_downloads, season_path, content_name, url, season, episodes, language, provider):
     provider_episodes = []
     language_episodes =[]
     for episode in episodes:
-        file_name = "{}/{} - s{:02}e{:0{width}} - {}.mp4".format(season_path, output_path, season, episode, language, width=3 if len(episodes) > 99 else 2)
+        file_name = "{}/{} - s{:02}e{:0{width}} - {}.mp4".format(season_path, content_name, season, episode, language, width=3 if len(episodes) > 99 else 2)
         logger.debug(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
         if not already_downloaded(file_name):
             try:
@@ -38,16 +39,13 @@ def check_episodes(active_threads, thread_semaphore, concurrent_downloads, seaso
             content_url = find_content_url(redirect_link, provider)
             logger.debug(MODULE_LOGGER_HEAD + f"{provider} content URL is: {content_url}")
             check_active_threads(active_threads, concurrent_downloads)
-            try:
-                create_new_download_thread(thread_semaphore, active_threads, content_url, file_name)
-            except ProviderError:
-                provider_episodes.append(episode)
+            create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, episode)
     return provider_episodes, language_episodes
 
 
 def main(concurrent_downloads=5):
-    
-    language, url, output_path, seasons, desired_episode = ArgumentParser.args.language, ArgumentParser.url, ArgumentParser.output_path, ArgumentParser.seasons, ArgumentParser.episodes
+    global pending_episodes
+    language, url, output_path, content_name, seasons, desired_episode = ArgumentParser.args.language, ArgumentParser.url, ArgumentParser.output_path, ArgumentParser.content_name, ArgumentParser.seasons, ArgumentParser.episodes
 
     logger.info("------------- AnimeSerienScraper started ------------")
 
@@ -65,8 +63,10 @@ def main(concurrent_downloads=5):
         logger.info(MODULE_LOGGER_HEAD + f"Season {season} has {len(get_episodes(url,season))} Episodes.")
         failed_episodes = []
         for provider in provider_list:
-            pending_episodes, language_episodes = check_episodes(active_threads, thread_semaphore, concurrent_downloads, season_path, output_path, url, season, pending_episodes, language, provider)
+            pending_episodes, language_episodes = check_episodes(active_threads, thread_semaphore, concurrent_downloads, season_path, content_name, url, season, pending_episodes, language, provider)
             failed_episodes.extend(language_episodes)
+            for thread in active_threads:
+                thread.join()
             if pending_episodes:
                 logger.warning(MODULE_LOGGER_HEAD + f"The following episodes of season {season} couldn't be downloaded from provider '{provider}':\n{pending_episodes}")
                 continue
@@ -75,8 +75,6 @@ def main(concurrent_downloads=5):
         logger.error(MODULE_LOGGER_HEAD + f"The following episodes of season {season} couldn't be downloaded in the desired language:\n{failed_episodes}") if failed_episodes else None
         logger.error(MODULE_LOGGER_HEAD + f"The following episodes of season {season} couldn't be downloaded from any of the supported provider:\n{pending_episodes}") if pending_episodes else None
         
-    for thread in active_threads:
-        thread.join()
 
 
 if __name__ == "__main__":
