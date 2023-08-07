@@ -1,12 +1,8 @@
 from bs4 import BeautifulSoup
 from .logger import Logger as logger
+from .downloader import ProviderError
 
 MODULE_LOGGER_HEAD = "language.py -> "
-
-
-class ProviderError(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
 
 
 class LanguageError(Exception):

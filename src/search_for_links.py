@@ -5,37 +5,12 @@ from urllib.error import URLError
 from bs4 import BeautifulSoup
 from urllib.parse import urlsplit, urlunsplit
 from .language import get_href_by_language
-from .language import ProviderError
 from .logger import Logger as logger
 
 MODULE_LOGGER_HEAD = "search_for_links.py -> "
 
 VOE_PATTERN = re.compile(r"'hls': '(?P<url>.+)'")
 STREAMTAPE_PATTERN = re.compile(r'get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'')
-
-
-def get_redirect_link_by_provider(episode_link, language):
-    """
-    Sets the priority in which downloads are attempted.
-    First -> VOE download, if not available...
-    Second -> Streamtape download, if not available...
-    Third -> Vidoza download
-
-    Parameters:
-        site_url (String): serie or anime site.
-        internal_link (String): link of the html page of the episode.
-        language (String): desired language to download the video file in.
-
-    Returns:
-        get_redirect_link(): returns link_to_redirect and provider.
-    """
-    try:
-        return get_redirect_link(episode_link, language, "VOE")
-    except ProviderError:
-        try:
-            return get_redirect_link(episode_link, language, "Streamtape")
-        except ProviderError:
-            return get_redirect_link(episode_link, language, "Vidoza")
 
 
 def get_redirect_link(episode_link, language, provider):
