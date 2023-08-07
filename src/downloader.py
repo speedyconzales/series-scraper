@@ -30,14 +30,15 @@ def download_episode(url, file_name, episode):
         else:
             subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         logger.success(MODULE_LOGGER_HEAD + f"Finished download of {file_name}.")
+        return None
     except subprocess.CalledProcessError as e:
         os.remove(file_name) if os.path.exists(file_name) else None
         logger.error(MODULE_LOGGER_HEAD + str(e))
         logger.error(MODULE_LOGGER_HEAD + f"Could not download {file_name}. Please manually download it later.")
+        return episode
 
 
-def create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, episode):
-     with thread_semaphore:
-        thread = threading.Thread(target=download_episode,args=[content_url, file_name, episode])
-        active_threads.append(thread)
-        thread.start()
+def create_new_download_thread(executor, content_url, file_name, episode):
+    return executor.submit(download_episode, content_url, file_name, episode)
+    
+ 

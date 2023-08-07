@@ -1,6 +1,6 @@
 import os
 import time
-import threading
+import concurrent.futures
 
 from src.search_for_links import get_episodes, get_redirect_link, find_content_url
 from src.downloader import already_downloaded, create_new_download_thread
@@ -9,21 +9,24 @@ from src.language import LanguageError
 from src.logger import Logger as logger
 from src.argument_parser import ArgumentParser
 
+
 MODULE_LOGGER_HEAD = "main.py -> "
 
-pending_episodes = []
 
-def check_active_threads(active_threads, concurrent_downloads):
-    active_threads = [t for t in active_threads if t.is_alive()]
-    logger.info(MODULE_LOGGER_HEAD + f"Max number of concurrent downloads = {concurrent_downloads} reached. Waiting for downloads to complete.") if len(active_threads) >= concurrent_downloads else None
-    while len(active_threads) >= concurrent_downloads:
+def check_active_threads(future_list, concurrent_downloads):
+    logger.debug(MODULE_LOGGER_HEAD + f"{future_list}")
+    active_futures = [future for future in future_list if future.running()]
+    logger.debug(MODULE_LOGGER_HEAD + f"{active_futures}")
+    logger.info(MODULE_LOGGER_HEAD + f"Max number of concurrent downloads = {concurrent_downloads} reached. Waiting for downloads to complete.") if len(active_futures) >= concurrent_downloads else None
+    while len(active_futures) >= concurrent_downloads:
+        active_futures = [future for future in future_list if future.running()]
         time.sleep(1)
-        active_threads = [t for t in active_threads if t.is_alive()]
 
 
-def check_episodes(active_threads, thread_semaphore, concurrent_downloads, season_path, content_name, url, season, episodes, language, provider):
+def check_episodes(concurrent_downloads, executor, season_path, content_name, url, season, episodes, language, provider):
     provider_episodes = []
     language_episodes =[]
+    future_list = []
     for episode in episodes:
         file_name = "{}/{} - s{:02}e{:0{width}} - {}.mp4".format(season_path, content_name, season, episode, language, width=3 if len(episodes) > 99 else 2)
         logger.debug(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
@@ -38,21 +41,17 @@ def check_episodes(active_threads, thread_semaphore, concurrent_downloads, seaso
                 continue
             content_url = find_content_url(redirect_link, provider)
             logger.debug(MODULE_LOGGER_HEAD + f"{provider} content URL is: {content_url}")
-            check_active_threads(active_threads, concurrent_downloads)
-            create_new_download_thread(thread_semaphore, active_threads, content_url, file_name, episode)
-    return provider_episodes, language_episodes
+            check_active_threads(future_list, concurrent_downloads)
+            future_list.append(create_new_download_thread(executor, content_url, file_name, episode))
+    return provider_episodes, language_episodes, future_list
 
 
-def main(concurrent_downloads=5):
-    global pending_episodes
+def main(concurrent_downloads=2):
     language, url, output_path, content_name, seasons, desired_episode = ArgumentParser.args.language, ArgumentParser.url, ArgumentParser.output_path, ArgumentParser.content_name, ArgumentParser.seasons, ArgumentParser.episodes
 
     logger.info("------------- AnimeSerienScraper started ------------")
 
     os.makedirs(output_path, exist_ok=True)
-
-    thread_semaphore = threading.Semaphore(concurrent_downloads)
-    active_threads: list[threading.Thread] = []
 
     provider_list = ["VOE", "Streamtape", "Vidoza"]
 
@@ -63,10 +62,13 @@ def main(concurrent_downloads=5):
         logger.info(MODULE_LOGGER_HEAD + f"Season {season} has {len(get_episodes(url,season))} Episodes.")
         failed_episodes = []
         for provider in provider_list:
-            pending_episodes, language_episodes = check_episodes(active_threads, thread_semaphore, concurrent_downloads, season_path, content_name, url, season, pending_episodes, language, provider)
-            failed_episodes.extend(language_episodes)
-            for thread in active_threads:
-                thread.join()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent_downloads) as executor:
+                pending_episodes, language_episodes, future_list = check_episodes(concurrent_downloads, executor, season_path, content_name, url, season, pending_episodes, language, provider)
+                failed_episodes.extend(language_episodes)
+                print("FATHER I SEE YOU")
+                for future in concurrent.futures.as_completed(future_list):
+                    print(f"MOTHER {future.result()}")
+                    pending_episodes.append(future.result()) if future.result() is not None else None
             if pending_episodes:
                 logger.warning(MODULE_LOGGER_HEAD + f"The following episodes of season {season} couldn't be downloaded from provider '{provider}':\n{pending_episodes}")
                 continue
