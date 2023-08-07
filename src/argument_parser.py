@@ -2,6 +2,12 @@ import argparse
 from .search_for_links import get_season
 
 class ArgumentParser:
+    type = {"serie": {"path": "Serien",
+                      "url": "https://s.to"}, # maybe you need another dns to be able to use this site
+            "anime": {"path": "Animes",
+                      "url": "https://aniworld.to"}
+            }
+    
     parser = argparse.ArgumentParser(description="S.to - Scraper")
     
     parser.add_argument("type", choices=["serie","anime"], help="specify the type of the content")
@@ -16,9 +22,8 @@ class ArgumentParser:
     if args.episode and not args.season:
         parser.error("You have to specify a season in order to specify an episode")
 
-    site_url = {"serie": "https://s.to", # maybe you need another dns to be able to use this site
-                "anime": "https://aniworld.to"}
-    url = "{}/{}/stream/{}/".format(site_url[args.type], args.type, args.name)
-    output_path = args.name.replace("-"," ").title()
+    url = "{}/{}/stream/{}/".format(type[args.type]["url"], args.type, args.name)
+    content_name = args.name.replace('-',' ').title()
+    output_path = f"{type[args.type]['path']}/{content_name}"
     seasons = [args.season] if args.season else get_season(url)
     episodes = [args.episode] if args.episode else 0
