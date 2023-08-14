@@ -23,7 +23,7 @@ def already_downloaded(file_name):
 
 def download_episode(url, file_name, episode):
     try:
-        ffmpeg_cmd = ['ffmpeg', '-i', url, '-c', 'copy', file_name]
+        ffmpeg_cmd = ['ffmpeg', '-i', url, '-c', 'copy', '-nostdin', file_name]
         logger.info(MODULE_LOGGER_HEAD + f"Episode '{file_name}' added to queue.")
         if platform.system() == "Windows":
             subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
