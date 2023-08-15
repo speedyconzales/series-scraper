@@ -1,6 +1,7 @@
 import concurrent.futures
 import os
 import time
+from urllib.request import HTTPError
 
 from src.argument_parser import ArgumentParser
 from src.downloader import ProviderError, already_downloaded, create_new_download_thread
@@ -50,6 +51,12 @@ def check_episodes(
                 language_episodes.append(episode)
                 continue
             except ProviderError:
+                provider_episodes.append(episode)
+                continue
+            except HTTPError as message:
+                logger.error(
+                    MODULE_LOGGER_HEAD + f"{message} while working on episode {episode}"
+                )
                 provider_episodes.append(episode)
                 continue
             content_url = find_content_url(redirect_link, provider)
