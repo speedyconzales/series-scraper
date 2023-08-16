@@ -1,6 +1,6 @@
 import re
 import urllib.request
-from urllib.error import URLError
+
 from urllib.parse import urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
@@ -27,12 +27,7 @@ def get_redirect_link(episode_link, language, provider):
 
 
 def find_content_url(url, provider):
-    try:
-        html_page = urllib.request.urlopen(url)
-    except URLError as e:
-        logger.warning(MODULE_LOGGER_HEAD + f"{e}")
-        logger.info(MODULE_LOGGER_HEAD + "Trying again...")
-        return find_content_url(url, provider)
+    html_page = urllib.request.urlopen(url)
     if provider == "Vidoza":
         soup = BeautifulSoup(html_page, features="html.parser")
         content_link = soup.find("source").get("src")

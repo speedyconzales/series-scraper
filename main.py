@@ -2,6 +2,7 @@ import concurrent.futures
 import os
 import time
 from urllib.request import HTTPError
+from urllib.error import URLError
 
 from src.argument_parser import ArgumentParser
 from src.downloader import ProviderError, already_downloaded, create_new_download_thread
@@ -59,7 +60,15 @@ def check_episodes(
                 )
                 provider_episodes.append(episode)
                 continue
-            content_url = find_content_url(redirect_link, provider)
+            try:
+                content_url = find_content_url(redirect_link, provider)
+            except URLError as message:
+                logger.error(
+                    MODULE_LOGGER_HEAD
+                    + f"{message} while working on episode {episode} and provider {provider}"
+                )
+                provider_episodes.append(episode)
+                continue
             logger.debug(
                 MODULE_LOGGER_HEAD + f"{provider} content URL is: {content_url}"
             )
@@ -120,17 +129,17 @@ def main(concurrent_downloads=2):
             if pending_episodes:
                 logger.warning(
                     MODULE_LOGGER_HEAD
-                    + f"The following episodes of season {season} couldn't be downloaded from provider '{provider}':\n{pending_episodes}"
+                    + f"The following episodes of season {season} couldn't be downloaded from provider '{provider}': {pending_episodes}"
                 )
                 continue
             break
         logger.error(
             MODULE_LOGGER_HEAD
-            + f"The following episodes of season {season} couldn't be downloaded in the desired language:\n{failed_episodes}"
+            + f"The following episodes of season {season} couldn't be downloaded in the desired language: {failed_episodes}"
         ) if failed_episodes else None
         logger.error(
             MODULE_LOGGER_HEAD
-            + f"The following episodes of season {season} couldn't be downloaded from any of the supported provider:\n{pending_episodes}"
+            + f"The following episodes of season {season} couldn't be downloaded from any of the supported provider: {pending_episodes}"
         ) if pending_episodes else None
 
 
