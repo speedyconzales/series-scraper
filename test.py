@@ -7,7 +7,7 @@ import re
 STREAMTAPE_PATTERN = re.compile(r"get_video\?id=.+?&expires=.+?&ip=.+?&token=.+?\'")
 
 
-def capture_video_stream(url, output_file):
+def get_page_content(url, output_file):
     try:
         # Send a GET request to the URL to fetch the video stream
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
@@ -38,12 +38,12 @@ def try_download(url, provider):
         return try_download(url, provider)
     cache_link = "https://" + provider + ".com/" + cache_link.group()[:-1]
     print(cache_link)
-    capture_video_stream(cache_link, "this_is_it.mp4")
+    get_page_content(cache_link, "this_is_it.mp4")
 
 
 # Example usage
-url = "https://chromotypic.com/e/t205ulfnkpc1"  # Replace with your video stream URL
+url = "https://yodelswartlike.com/xx89oysty5jj"  # Replace with your video stream URL
 output_file = "output_video.html"  # Replace with the desired output file name
 
-capture_video_stream(url, output_file)
+get_page_content(url, output_file)
 # try_download(redirect("https://aniworld.to", "https://aniworld.to/anime/stream/am-i-actually-the-strongest/staffel-1/episode-1", "Ger-Sub", "Streamtape"), "Streamtape")
