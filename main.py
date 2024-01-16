@@ -54,15 +54,16 @@ def check_episodes(
             except ProviderError:
                 provider_episodes.append(episode)
                 continue
-            except HTTPError as message:
+            except [HTTPError, URLError] as message:
                 logger.error(
-                    MODULE_LOGGER_HEAD + f"{message} while working on episode {episode}"
+                    MODULE_LOGGER_HEAD
+                    + f"{message} while working on episode {episode} and provider {provider}"
                 )
                 provider_episodes.append(episode)
                 continue
             try:
                 content_url = find_content_url(redirect_link, provider)
-            except URLError as message:
+            except Exception as message:
                 logger.error(
                     MODULE_LOGGER_HEAD
                     + f"{message} while working on episode {episode} and provider {provider}"
@@ -93,7 +94,7 @@ def main(concurrent_downloads=2):
 
     os.makedirs(output_path, exist_ok=True)
 
-    provider_list = ["VOE", "VOE", "Streamtape", "Vidoza"]
+    provider_list = ["VOE", "VOE", "Vidoza", "Streamtape"]
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"

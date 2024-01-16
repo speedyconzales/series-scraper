@@ -4,7 +4,6 @@ import os
 from src.downloader import download_episode
 from src.search_for_links import find_content_url
 
-EXT = ".mp4"
 ROOT = ""
 
 
@@ -20,8 +19,8 @@ if __name__ == "__main__":
     parser.add_argument("url", type=str, help="url of the content")
 
     args = parser.parse_args()
-    file_name = f"{args.title}{EXT}"
-    folder_name = f"{ROOT}{args.title}"
+    file_name = f"{args.title}.mp4"
+    folder_name = os.path.join(ROOT, args.title)
     os.makedirs(folder_name, exist_ok=True)
     download_episode(
         find_content_url(args.url, args.provider),
