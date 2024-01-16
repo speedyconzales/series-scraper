@@ -16,9 +16,9 @@ STREAMTAPE_PATTERN = re.compile(
 )
 
 
-def get_redirect_link(episode_link, language, provider):
+def get_redirect_link(episode_link, language, provider, season, episode):
     html_response = urllib.request.urlopen(episode_link)
-    href_value = get_href_by_language(html_response, language, provider)
+    href_value = get_href_by_language(html_response, language, provider, season, episode)
     parsed_url = urlsplit(episode_link)
     base_url = urlunsplit((parsed_url.scheme, parsed_url.netloc, "", "", ""))
     link_to_redirect = base_url + href_value
@@ -40,7 +40,7 @@ def find_content_url(url, provider):
         content_link = "https://" + provider + ".com/" + content_link.group()[:-1]
         logger.debug(
             MODULE_LOGGER_HEAD
-            + f"This is the found video link of {provider}: {content_link}"
+            + f"Found the following video link of {provider}: {content_link}"
         )
     return content_link
 

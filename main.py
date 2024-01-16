@@ -46,7 +46,7 @@ def check_episodes(
         if not already_downloaded(file_name):
             try:
                 redirect_link, provider = get_redirect_link(
-                    f"{url}staffel-{season}/episode-{episode}", language, provider
+                    f"{url}staffel-{season}/episode-{episode}", language, provider, season, episode
                 )
             except LanguageError:
                 language_episodes.append(episode)
@@ -140,7 +140,7 @@ def main(concurrent_downloads=2):
         ) if failed_episodes else None
         logger.error(
             MODULE_LOGGER_HEAD
-            + f"The following episodes of season {season} couldn't be downloaded from any of the supported provider: {pending_episodes}"
+            + f"The following episodes of season {season} couldn't be downloaded from any of the supported providers: {pending_episodes}"
         ) if pending_episodes else None
 
 

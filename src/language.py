@@ -41,7 +41,7 @@ def extract_lang_key_mapping(soup):
     return restructure_dict(lang_key_mapping)
 
 
-def get_href_by_language(html_content, language, provider):
+def get_href_by_language(html_content, language, provider, season, episode):
     soup = BeautifulSoup(html_content, "html.parser")
     lang_key_mapping = extract_lang_key_mapping(soup)
     lang_key = lang_key_mapping.get(language)
@@ -49,7 +49,7 @@ def get_href_by_language(html_content, language, provider):
         raise LanguageError(
             logger.error(
                 MODULE_LOGGER_HEAD
-                + f"This episode does not support language '{language}'. Supported languages: {list(lang_key_mapping.keys())}"
+                + f"Episode {episode} in season {season} does not support language '{language}'. Supported languages: {list(lang_key_mapping.keys())}"
             )
         )
     matching_li_elements = soup.find_all("li", {"data-lang-key": lang_key})
