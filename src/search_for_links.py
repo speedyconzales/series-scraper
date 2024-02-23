@@ -4,6 +4,11 @@ import urllib.request
 from urllib.parse import urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from src.language import get_href_by_language
 from src.logger import Logger as logger
@@ -25,6 +30,23 @@ def get_redirect_link(episode_link, language, provider, season, episode):
     logger.debug(MODULE_LOGGER_HEAD + "Link to redirect is: " + link_to_redirect)
     return link_to_redirect, provider
 
+def get_voe_content_link_with_selenium(provider_url):
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--disable-gpu') 
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.get(provider_url)
+    voe_play_div = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'voe-play'))
+    )
+    voe_play_div.click()
+    driver.switch_to.window(driver.window_handles[0])
+    video_in_media_provider = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, 'media-provider video source:nth-of-type(2)'))
+    )
+    content_link = video_in_media_provider.get_attribute('src')
+    driver.quit()
+    return content_link
 
 def find_content_url(url, provider):
     html_page = urllib.request.urlopen(url)
@@ -32,16 +54,17 @@ def find_content_url(url, provider):
         soup = BeautifulSoup(html_page, features="html.parser")
         content_link = soup.find("source").get("src")
     elif provider == "VOE":
-        content_link = VOE_PATTERN.search(html_page.read().decode("utf-8")).group("url")
+        content_link = get_voe_content_link_with_selenium(url)
+        # content_link = VOE_PATTERN.search(html_page.read().decode("utf-8")).group("url")
     elif provider == "Streamtape":
         content_link = STREAMTAPE_PATTERN.search(html_page.read().decode("utf-8"))
         if content_link is None:
             return find_content_url(url, provider)
         content_link = "https://" + provider + ".com/" + content_link.group()[:-1]
-        logger.debug(
-            MODULE_LOGGER_HEAD
-            + f"Found the following video link of {provider}: {content_link}"
-        )
+    logger.debug(
+        MODULE_LOGGER_HEAD
+        + f"Found the following video link of {provider}: {content_link}"
+    )
     return content_link
 
 
