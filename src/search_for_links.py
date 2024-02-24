@@ -40,7 +40,6 @@ def get_voe_content_link_with_selenium(provider_url):
         EC.presence_of_element_located((By.CLASS_NAME, 'voe-play'))
     )
     voe_play_div.click()
-    driver.switch_to.window(driver.window_handles[0])
     video_in_media_provider = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, 'media-provider video source:nth-of-type(2)'))
     )

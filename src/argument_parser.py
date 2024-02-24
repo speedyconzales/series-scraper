@@ -1,15 +1,23 @@
 import argparse
+import yaml
 
 from src.search_for_links import get_season
 
 
 class ArgumentParser:
+    with open('config.yml', 'r') as yaml_file:
+        config = yaml.safe_load(yaml_file)
+    anime_path = config['anime_folder']
+    serie_path = config['serien_folder']
     type = {
         "serie": {
-            "path": "Serien",
+            "path": serie_path,
             "url": "https://s.to",
-        },  # maybe you need another dns to be able to use this site
-        "anime": {"path": "Animes", "url": "https://aniworld.to"},
+        },
+        "anime": {
+            "path": anime_path,
+            "url": "https://aniworld.to"
+        },
     }
 
     parser = argparse.ArgumentParser(description="S.to - Scraper")
