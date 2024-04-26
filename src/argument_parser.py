@@ -30,14 +30,16 @@ class ArgumentParser:
 
     parser.add_argument("-s", "--season", type=int, help="specify the season")
     parser.add_argument("-e", "--episode", type=int, help="specify the episode")
+    parser.add_argument("-t", "--threads", type=int, help="specify the number of threads")
 
     args = parser.parse_args()
 
     if args.episode and not args.season:
         parser.error("You have to specify a season in order to specify an episode")
 
+    threads = args.threads if args.threads is not None else 2
     url = f"{type[args.type]['url']}/{args.type}/stream/{args.name}/"
     content_name = args.name.replace("-", " ").title()
     output_path = f"{type[args.type]['path']}/{content_name}"
-    seasons = [args.season] if args.season else get_season(url)
-    episodes = [args.episode] if args.episode else 0
+    seasons = [args.season] if args.season is not None else get_season(url)
+    episodes = [args.episode] if args.episode is not None else None
