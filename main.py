@@ -107,7 +107,7 @@ def main():
         os.makedirs(season_path, exist_ok=True)
         if season > 0:
             pending_episodes = (
-            get_episodes(url, season) if desired_episode is None else desired_episode
+            get_episodes(url, season) if desired_episode == 0 else desired_episode
             )
         else:
             pending_episodes = get_movies(url)

@@ -42,4 +42,4 @@ class ArgumentParser:
     content_name = args.name.replace("-", " ").title()
     output_path = f"{type[args.type]['path']}/{content_name}"
     seasons = [args.season] if args.season is not None else get_season(url)
-    episodes = [args.episode] if args.episode is not None else None
+    episodes = [args.episode] if args.episode else 0
