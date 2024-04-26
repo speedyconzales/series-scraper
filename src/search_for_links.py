@@ -1,4 +1,5 @@
 import re
+import sys
 import urllib.request
 
 from urllib.parse import urlsplit, urlunsplit
@@ -15,7 +16,8 @@ from src.logger import Logger as logger
 
 MODULE_LOGGER_HEAD = "search_for_links.py -> "
 
-VOE_PATTERN = re.compile(r"'hls': '(?P<url>.+)'")
+VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
+                re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"')]
 STREAMTAPE_PATTERN = re.compile(
     r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'"
 )
@@ -53,8 +55,19 @@ def find_content_url(url, provider):
         soup = BeautifulSoup(html_page, features="html.parser")
         content_link = soup.find("source").get("src")
     elif provider == "VOE":
+        def content_link_is_not_valid(content_link):
+            return content_link is None or not content_link.startswith("https://")
+        html_page = html_page.read().decode("utf-8")
+        for VOE_PATTERN in VOE_PATTERNS:
+            content_link = VOE_PATTERN.search(html_page).group("url")
+            if content_link_is_not_valid(content_link):
+                continue
+            else:
+                return content_link
         content_link = get_voe_content_link_with_selenium(url)
-        # content_link = VOE_PATTERN.search(html_page.read().decode("utf-8")).group("url")
+        if content_link_is_not_valid(content_link):
+            logger.error(MODULE_LOGGER_HEAD + "Failed to find the video links of provider VOE. Exiting...")
+            sys.exit(1)
     elif provider == "Streamtape":
         content_link = STREAMTAPE_PATTERN.search(html_page.read().decode("utf-8"))
         if content_link is None:
