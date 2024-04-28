@@ -8,7 +8,7 @@ class Logger:
             'WARNING': '\033[93m',  # Yellow
             'ERROR': '\033[91m',   # Red
             'CRITICAL': '\033[95m',  # Magenta
-            'SUCCESS': '\033[92m',   # Green for SUCCESS level
+            'SUCCESS': '\033[92m',   # Green
             'RESET': '\033[0m'   # Reset to default color
         }
 

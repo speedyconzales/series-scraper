@@ -1,14 +1,46 @@
 from bs4 import BeautifulSoup
 
-from src.downloader import ProviderError
 from src.logger import Logger as logger
 
+
 MODULE_LOGGER_HEAD = "language.py -> "
+
+
+class ProviderError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
 
 
 class LanguageError(Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
+
+
+def get_bs_href_by_language(html_response, language, provider, season, episode):
+    soup = BeautifulSoup(html_response, "html.parser")
+    episode_has_language = False
+    links = soup.find_all('i', class_='hoster')
+    for link in links:
+        href = str(link.parent.get("href"))
+        if f"{season}/{episode}" in href:
+            episode_has_language = True
+            parts = href.split("/")
+            link_provider = parts[-1]
+            if link_provider == provider:
+                return "/" + href
+    if not episode_has_language:
+        raise LanguageError(
+            logger.error(
+                MODULE_LOGGER_HEAD
+                + f"Episode {episode} in season {season} does not support language '{language}'"
+            )
+        )
+    raise ProviderError(
+        logger.error(
+            MODULE_LOGGER_HEAD
+            + f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language'{language}'"
+        )
+    )
 
 
 def restructure_dict(given_dict):
@@ -41,8 +73,8 @@ def extract_lang_key_mapping(soup):
     return restructure_dict(lang_key_mapping)
 
 
-def get_href_by_language(html_content, language, provider, season, episode):
-    soup = BeautifulSoup(html_content, "html.parser")
+def get_href_by_language(html_response, language, provider, season, episode):
+    soup = BeautifulSoup(html_response, "html.parser")
     lang_key_mapping = extract_lang_key_mapping(soup)
     lang_key = lang_key_mapping.get(language)
     if lang_key is None:
@@ -67,6 +99,6 @@ def get_href_by_language(html_content, language, provider, season, episode):
     raise ProviderError(
         logger.error(
             MODULE_LOGGER_HEAD
-            + f"No matching download link found for language '{language}'"
+            + f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language'{language}'"
         )
     )

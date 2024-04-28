@@ -5,8 +5,9 @@ name = "pypi"
 
 [packages]
 beautifulsoup4 = "*"
-selenium = "*"
 pyyaml = "*"
+selenium = ">=4.10.0"
+undetected-chromedriver = "==3.5.5"
 
 [dev-packages]
 

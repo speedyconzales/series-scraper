@@ -4,12 +4,8 @@ import subprocess
 
 from src.logger import Logger as logger
 
+
 MODULE_LOGGER_HEAD = "downloader.py -> "
-
-
-class ProviderError(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
 
 
 def already_downloaded(file_name):
@@ -44,7 +40,7 @@ def download_episode(url, file_name, episode):
         logger.error(MODULE_LOGGER_HEAD + str(e))
         logger.error(
             MODULE_LOGGER_HEAD
-            + f"Could not download {file_name}. Please manually download it later."
+            + f"Could not download {file_name}."
         )
         return episode
 

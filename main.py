@@ -5,10 +5,11 @@ from urllib.request import HTTPError
 from urllib.error import URLError
 
 from src.argument_parser import ArgumentParser
-from src.downloader import ProviderError, already_downloaded, create_new_download_thread
-from src.language import LanguageError
+from src.downloader import already_downloaded, create_new_download_thread
+from src.episode_link_grabber import LanguageError, ProviderError
 from src.logger import Logger as logger
-from src.search_for_links import find_content_url, get_episodes, get_movies, get_redirect_link
+from src.html_scraper import find_content_url, get_episodes, get_specials, get_episode_link
+
 
 MODULE_LOGGER_HEAD = "main.py -> "
 
@@ -36,6 +37,7 @@ def check_episodes(
     episodes,
     language,
     provider,
+    burning_series,
 ):
     provider_episodes = []
     language_episodes = []
@@ -45,14 +47,7 @@ def check_episodes(
         logger.debug(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
         if not already_downloaded(file_name):
             try:
-                if season > 0:
-                    redirect_link, provider = get_redirect_link(
-                        f"{url}staffel-{season}/episode-{episode}", language, provider, season, episode
-                    )
-                else:
-                    redirect_link, provider = get_redirect_link(
-                        f"{url}filme/film-{episode}", language, provider, season, episode
-                    )
+                episode_link = get_episode_link(url, language, provider, season, episode, burning_series)
             except LanguageError:
                 language_episodes.append(episode)
                 continue
@@ -67,7 +62,7 @@ def check_episodes(
                 provider_episodes.append(episode)
                 continue
             try:
-                content_url = find_content_url(redirect_link, provider)
+                content_url = find_content_url(episode_link, provider)
             except Exception as message:
                 logger.error(
                     MODULE_LOGGER_HEAD
@@ -86,17 +81,18 @@ def check_episodes(
 
 
 def main():
-    language, url, output_path, content_name, seasons, desired_episode, threads = (
-        ArgumentParser.args.language,
+    language, url, output_path, content_name, seasons, desired_episode, threads, burning_series = (
+        ArgumentParser.language,
         ArgumentParser.url,
         ArgumentParser.output_path,
         ArgumentParser.content_name,
         ArgumentParser.seasons,
         ArgumentParser.episodes,
         ArgumentParser.threads,
+        ArgumentParser.burning_series,
     )
 
-    logger.info("------------- AnimeSerienScraper started ------------")
+    logger.info("------------- Series-Scraper started ------------")
 
     os.makedirs(output_path, exist_ok=True)
 
@@ -105,15 +101,13 @@ def main():
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"
         os.makedirs(season_path, exist_ok=True)
-        if season > 0:
-            pending_episodes = (
-            get_episodes(url, season) if desired_episode == 0 else desired_episode
-            )
+        if season > 0 or burning_series:
+            pending_episodes = get_episodes(url, season, burning_series) if desired_episode == 0 else desired_episode
         else:
-            pending_episodes = get_movies(url)
+            pending_episodes = get_specials(url) if desired_episode == 0 else desired_episode
         logger.info(
             MODULE_LOGGER_HEAD
-            + f"Season {season} has {len(get_episodes(url,season)) if season > 0 else len(get_movies(url))} Episodes."
+            + f"Season {season} has {len(get_episodes(url,season)) if season > 0 else len(get_specials(url))} Episodes."
         )
         failed_episodes = []
         for provider in provider_list:
@@ -130,6 +124,7 @@ def main():
                     pending_episodes,
                     language,
                     provider,
+                    burning_series,
                 )
                 failed_episodes.extend(language_episodes)
                 for future in concurrent.futures.as_completed(future_list):
@@ -158,4 +153,4 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         pass
-    logger.info("------------- AnimeSerienScraper stopped ------------")
+    logger.info("------------- Series-Scraper stopped ------------")
