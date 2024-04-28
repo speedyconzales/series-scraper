@@ -34,21 +34,15 @@ class ArgumentParser:
         burning_series = True
         content_name = url_split.path.split("/")[2]
         url = f"https://bs.to/serie/{content_name}/"
-        bs_language_mapping = {
-            "Deutsch": "de",
-            "Ger-Sub": "des",
-            "English": "jps"
-        }
-        language = bs_language_mapping.get(args.language)
     else:
         burning_series = False
         content_name = url_split.path.split("/")[3]
         url = f"https://{url_split.hostname}/{args.type}/stream/{content_name}/"
-        language = args.language
+    language = args.language
     content_name = content_name.replace("-", " ").title()
     if args.type == "anime":
         output_path = f"{anime_path}/{content_name}"
     else:
         output_path = f"{series_path}/{content_name}"
-    seasons = [args.season] if args.season is not None else get_seasons(url, args.burning_series)
+    seasons = [args.season] if args.season is not None else get_seasons(url, burning_series)
     episodes = [args.episode] if args.episode else 0

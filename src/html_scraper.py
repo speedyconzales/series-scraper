@@ -13,21 +13,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.episode_link_grabber import get_href_by_language, get_bs_href_by_language
-from src.logger import Logger as logger
+from src.logger import logger
 
 
-MODULE_LOGGER_HEAD = "search_for_links.py -> "
 VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
                 re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"')]
-STREAMTAPE_PATTERN = re.compile(
-    r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'"
-)
+STREAMTAPE_PATTERN = re.compile(r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'")
 
 
 def get_episode_link(url, language, provider, season, episode, burning_series):
     if burning_series:
-        html_response = urllib.request.urlopen(f"{url}{season}/{language}")
-        href_value = get_bs_href_by_language(html_response, language, provider, season, episode)
+        href_value = get_bs_href_by_language(url, language, provider, season, episode)
     else:
         if season > 0:
             html_response = urllib.request.urlopen(f"{url}staffel-{season}/episode-{episode}")
@@ -39,7 +35,7 @@ def get_episode_link(url, language, provider, season, episode, burning_series):
     link_to_episode = base_url + href_value
     if burning_series:
         link_to_episode = find_bs_link_to_episode(link_to_episode, provider)
-    logger.debug(MODULE_LOGGER_HEAD + "Link to episode is: " + link_to_episode)
+    logger.debug(f"Link to episode is: {link_to_episode}")
     return link_to_episode
 
 
@@ -78,17 +74,14 @@ def find_content_url(url, provider):
                 return content_link
         content_link = get_voe_content_link_with_selenium(url)
         if content_link_is_not_valid(content_link):
-            logger.error(MODULE_LOGGER_HEAD + "Failed to find the video links of provider VOE. Exiting...")
+            logger.critical("Failed to find the video links of provider VOE. Exiting...")
             sys.exit(1)
     elif provider == "Streamtape":
         content_link = STREAMTAPE_PATTERN.search(html_page.read().decode("utf-8"))
         if content_link is None:
             return find_content_url(url, provider)
         content_link = "https://" + provider + ".com/" + content_link.group()[:-1]
-    logger.debug(
-        MODULE_LOGGER_HEAD
-        + f"Found the following video link of {provider}: {content_link}"
-    )
+    logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
     
 
@@ -118,13 +111,13 @@ def find_bs_link_to_episode(url, provider):
         )
         content_link = video_in_media_provider.get_attribute('src')
     else:
-        logger.error(MODULE_LOGGER_HEAD + "No supported hoster available for this episode")
+        logger.error("No supported hoster available for this episode")
     driver.quit()
     return content_link
 
 
 def get_seasons(url_path, burning_series=False) -> list:
-    logger.debug(MODULE_LOGGER_HEAD + "Site URL is: " + url_path)
+    logger.debug(f"Site URL is: {url_path}")
     counter_seasons = 1
     html_page = urllib.request.urlopen(url_path, timeout=50)
     soup = BeautifulSoup(html_page, features="html.parser")

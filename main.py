@@ -7,20 +7,16 @@ from urllib.error import URLError
 from src.argument_parser import ArgumentParser
 from src.downloader import already_downloaded, create_new_download_thread
 from src.episode_link_grabber import LanguageError, ProviderError
-from src.logger import Logger as logger
+from src.logger import logger
 from src.html_scraper import find_content_url, get_episodes, get_specials, get_episode_link
 
 
-MODULE_LOGGER_HEAD = "main.py -> "
-
-
 def check_active_threads(future_list, concurrent_downloads):
-    logger.debug(MODULE_LOGGER_HEAD + f"{future_list}")
+    logger.debug(f"{future_list}")
     active_futures = [future for future in future_list if future.running()]
-    logger.debug(MODULE_LOGGER_HEAD + f"{active_futures}")
+    logger.debug(f"{active_futures}")
     logger.info(
-        MODULE_LOGGER_HEAD
-        + f"Max number of concurrent downloads = {concurrent_downloads} reached. Waiting for downloads to complete."
+        f"Max number of concurrent downloads = {concurrent_downloads} reached. Waiting for downloads to complete."
     ) if len(active_futures) >= concurrent_downloads else None
     while len(active_futures) >= concurrent_downloads:
         active_futures = [future for future in future_list if future.running()]
@@ -44,7 +40,7 @@ def check_episodes(
     future_list = []
     for episode in episodes:
         file_name = f"{season_path}/{content_name} - s{season:02}e{episode:0{3 if len(episodes) > 99 else 2}} - {language}.mp4"
-        logger.debug(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
+        logger.debug(f"File name will be: {file_name}")
         if not already_downloaded(file_name):
             try:
                 episode_link = get_episode_link(url, language, provider, season, episode, burning_series)
@@ -55,28 +51,18 @@ def check_episodes(
                 provider_episodes.append(episode)
                 continue
             except [HTTPError, URLError] as message:
-                logger.error(
-                    MODULE_LOGGER_HEAD
-                    + f"{message} while working on episode {episode} and provider {provider}"
-                )
+                logger.error(f"{message} while working on episode {episode} and provider {provider}")
                 provider_episodes.append(episode)
                 continue
             try:
                 content_url = find_content_url(episode_link, provider)
             except Exception as message:
-                logger.error(
-                    MODULE_LOGGER_HEAD
-                    + f"{message} while working on episode {episode} and provider {provider}"
-                )
+                logger.error(f"{message} while working on episode {episode} and provider {provider}")
                 provider_episodes.append(episode)
                 continue
-            logger.debug(
-                MODULE_LOGGER_HEAD + f"{provider} content URL is: {content_url}"
-            )
+            logger.debug(f"{provider} content URL is: {content_url}")
             check_active_threads(future_list, concurrent_downloads)
-            future_list.append(
-                create_new_download_thread(executor, content_url, file_name, episode)
-            )
+            future_list.append(create_new_download_thread(executor, content_url, file_name, episode))
     return provider_episodes, language_episodes, future_list
 
 
@@ -105,10 +91,7 @@ def main():
             pending_episodes = get_episodes(url, season, burning_series) if desired_episode == 0 else desired_episode
         else:
             pending_episodes = get_specials(url) if desired_episode == 0 else desired_episode
-        logger.info(
-            MODULE_LOGGER_HEAD
-            + f"Season {season} has {len(get_episodes(url,season)) if season > 0 else len(get_specials(url))} Episodes."
-        )
+        logger.info(f"Season {season} has {len(get_episodes(url, season, burning_series)) if season > 0 or burning_series else len(get_specials(url))} Episodes.")
         failed_episodes = []
         for provider in provider_list:
             with concurrent.futures.ThreadPoolExecutor(
@@ -132,20 +115,11 @@ def main():
                         future.result()
                     ) if future.result() is not None else None
             if pending_episodes:
-                logger.warning(
-                    MODULE_LOGGER_HEAD
-                    + f"The following episodes of season {season} couldn't be downloaded from provider '{provider}': {pending_episodes}"
-                )
+                logger.warning(f"The following episodes of season {season} couldn't be downloaded from provider '{provider}': {pending_episodes}")
                 continue
             break
-        logger.error(
-            MODULE_LOGGER_HEAD
-            + f"The following episodes of season {season} couldn't be downloaded in the desired language: {failed_episodes}"
-        ) if failed_episodes else None
-        logger.error(
-            MODULE_LOGGER_HEAD
-            + f"The following episodes of season {season} couldn't be downloaded from any of the supported providers: {pending_episodes}"
-        ) if pending_episodes else None
+        logger.error(f"The following episodes of season {season} couldn't be downloaded in the desired language: {failed_episodes}") if failed_episodes else None
+        logger.error(f"The following episodes of season {season} couldn't be downloaded from any of the supported providers: {pending_episodes}") if pending_episodes else None
 
 
 if __name__ == "__main__":
