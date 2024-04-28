@@ -4,7 +4,7 @@
 - headless and completely automated scraping of the following sites:
   - [aniworld.to](https://aniworld.to)
   - [s.to](https://s.to)
-- needs a GUI and requires user interaction (captchas):
+- needs a GUI and requires user interaction (captchas: default time to solve the captcha is 60 seconds):
   - [bs.to](https://bs.to)
 
 ## Supported Hosters
