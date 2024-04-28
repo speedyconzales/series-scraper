@@ -8,7 +8,7 @@ from src.argument_parser import ArgumentParser
 from src.downloader import ProviderError, already_downloaded, create_new_download_thread
 from src.language import LanguageError
 from src.logger import Logger as logger
-from src.search_for_links import find_content_url, get_episodes, get_redirect_link
+from src.search_for_links import find_content_url, get_episodes, get_movies, get_redirect_link
 
 MODULE_LOGGER_HEAD = "main.py -> "
 
@@ -45,9 +45,14 @@ def check_episodes(
         logger.debug(MODULE_LOGGER_HEAD + "File name will be: " + file_name)
         if not already_downloaded(file_name):
             try:
-                redirect_link, provider = get_redirect_link(
-                    f"{url}staffel-{season}/episode-{episode}", language, provider, season, episode
-                )
+                if season > 0:
+                    redirect_link, provider = get_redirect_link(
+                        f"{url}staffel-{season}/episode-{episode}", language, provider, season, episode
+                    )
+                else:
+                    redirect_link, provider = get_redirect_link(
+                        f"{url}filme/film-{episode}", language, provider, season, episode
+                    )
             except LanguageError:
                 language_episodes.append(episode)
                 continue
@@ -80,14 +85,15 @@ def check_episodes(
     return provider_episodes, language_episodes, future_list
 
 
-def main(concurrent_downloads=2):
-    language, url, output_path, content_name, seasons, desired_episode = (
+def main():
+    language, url, output_path, content_name, seasons, desired_episode, threads = (
         ArgumentParser.args.language,
         ArgumentParser.url,
         ArgumentParser.output_path,
         ArgumentParser.content_name,
         ArgumentParser.seasons,
         ArgumentParser.episodes,
+        ArgumentParser.threads,
     )
 
     logger.info("------------- AnimeSerienScraper started ------------")
@@ -99,20 +105,23 @@ def main(concurrent_downloads=2):
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"
         os.makedirs(season_path, exist_ok=True)
-        pending_episodes = (
+        if season > 0:
+            pending_episodes = (
             get_episodes(url, season) if desired_episode == 0 else desired_episode
-        )
+            )
+        else:
+            pending_episodes = get_movies(url)
         logger.info(
             MODULE_LOGGER_HEAD
-            + f"Season {season} has {len(get_episodes(url,season))} Episodes."
+            + f"Season {season} has {len(get_episodes(url,season)) if season > 0 else len(get_movies(url))} Episodes."
         )
         failed_episodes = []
         for provider in provider_list:
             with concurrent.futures.ThreadPoolExecutor(
-                max_workers=concurrent_downloads
+                max_workers=threads
             ) as executor:
                 pending_episodes, language_episodes, future_list = check_episodes(
-                    concurrent_downloads,
+                    threads,
                     executor,
                     season_path,
                     content_name,

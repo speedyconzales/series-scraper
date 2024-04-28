@@ -94,7 +94,7 @@ def get_season(url_path) -> list:
 
 
 def get_episodes(url_path, season) -> list:
-    url = "{}staffel-{}/".format(url_path, season)
+    url = f"{url_path}staffel-{season}/"
     counter_episodes = 1
     html_page = urllib.request.urlopen(url, timeout=50)
     soup = BeautifulSoup(html_page, features="html.parser")
@@ -104,3 +104,15 @@ def get_episodes(url_path, season) -> list:
             counter_episodes += 1
     episodes = [i for i in range(1, counter_episodes)]
     return episodes
+
+def get_movies(url_path) -> list:
+    url = f"{url_path}filme/"
+    counter_movies = 1
+    html_page = urllib.request.urlopen(url, timeout=50)
+    soup = BeautifulSoup(html_page, features="html.parser")
+    for link in soup.findAll('a'):
+        movie = str(link.get("href"))
+        if f"/filme/film-{counter_movies}" in movie:
+            counter_movies += 1
+    movies = [i for i in range(1, counter_movies)]
+    return movies
