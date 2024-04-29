@@ -14,10 +14,11 @@
 
 ## Dependencies
 
-1. install [ffmpeg](https://ffmpeg.org/download.html) and make sure it is in PATH -> `ffmpeg -version`
-2. install [chrome](https://www.google.com/chrome/) or [chromium](https://www.chromium.org/getting-involved/download-chromium/)
-3. install requirements via pipenv and Pipfile or pip and requirements.txt
-4. copy and rename template.yml to config.yml and fill in the required folder paths for the respective type of the content
+1. the tool is tested with python3.11, python3.12 is not supported. I can't say if python<3.11 is working, not tested
+2. install [ffmpeg](https://ffmpeg.org/download.html) and make sure it is in PATH -> `ffmpeg -version`
+3. install [chrome](https://www.google.com/chrome/) or [chromium](https://www.chromium.org/getting-involved/download-chromium/)
+4. install requirements via pipenv and Pipfile OR create a virtual environment and install them via pip and requirements.txt
+5. copy and rename template.yml to config.yml and fill in the required folder paths for the respective type of the content
 
 ## Usage
 1. use `main.py`
