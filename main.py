@@ -42,6 +42,7 @@ def check_episodes(
         file_name = f"{season_path}/{content_name} - s{season:02}e{episode:0{3 if len(episodes) > 99 else 2}} - {language}.mp4"
         logger.debug(f"File name will be: {file_name}")
         if not already_downloaded(file_name):
+            check_active_threads(future_list, concurrent_downloads)
             try:
                 episode_link = get_episode_link(url, language, provider, season, episode, burning_series)
             except LanguageError:
@@ -61,7 +62,6 @@ def check_episodes(
                 provider_episodes.append(episode)
                 continue
             logger.debug(f"{provider} content URL is: {content_url}")
-            check_active_threads(future_list, concurrent_downloads)
             future_list.append(create_new_download_thread(executor, content_url, file_name, episode))
     return provider_episodes, language_episodes, future_list
 
