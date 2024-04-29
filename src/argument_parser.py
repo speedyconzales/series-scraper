@@ -25,7 +25,7 @@ class ArgumentParser:
         "type", choices=["serie", "anime"], help="specify the type of the content"
     )
     parser.add_argument("url", type=is_valid_url, help="url of the series")
-    parser.add_argument("language", choices=["Deutsch", "Ger-Sub", "English"], help="desired language of the content")
+    parser.add_argument("language", choices=["Deutsch", "Ger-Sub", "Eng-Sub", "English"], help="desired language of the content")
 
     parser.add_argument("-s", "--season", type=int, help="specify the season")
     parser.add_argument("-e", "--episode", type=int, help="specify the episode")
