@@ -19,7 +19,8 @@ def get_bs_href_by_language(url, language, provider, season, episode):
     bs_language_mapping = {
             "Deutsch": "de",
             "Ger-Sub": "des",
-            "English": "jps"
+            "Eng-Sub": "jps",
+            "English": "en",
         }
     html_response = urllib.request.urlopen(f"{url}{season}/{bs_language_mapping.get(language)}")
     soup = BeautifulSoup(html_response, "html.parser")
@@ -45,6 +46,7 @@ def get_href_by_language(html_response, language, provider, season, episode):
     language_mapping = {
         "Deutsch": 1,
         "Ger-Sub": 3,
+        "Eng-Sub": 2,
         "English": 2,
     }
     matching_li_elements = soup.find_all("li", {"data-lang-key": language_mapping.get(language)})

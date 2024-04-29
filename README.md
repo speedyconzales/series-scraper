@@ -22,7 +22,7 @@
 
 ## Usage
 1. use `main.py`
-    - `python main.py <type[anime,serie]> <url> <language[Deutsch,Ger-Sub,English]>` to run the scraper
+    - `python main.py <type[anime,serie]> <url> <language[Deutsch,Ger-Sub,Eng-Sub,English]>` to run the scraper
     - `python main.py --help` for more information
 2. choose either `anime` or `serie` for the corresponding type and output path
 3. provide the url of the series. The `series-name` has to be present in the url.  
@@ -30,7 +30,7 @@ That means: navigate to one of the supported sites. Search for the series you wa
 `https://aniworld.to/anime/stream/<series-name>` or  
 `https://s.to/serie/stream/<series-name>` or  
 `https://bs.to/serie/<series-name>`
-4. choose the language of the content being either `Deutsch`, `Ger-Sub` or `English`
+4. choose the language of the content being either `Deutsch`, `Ger-Sub`, `Eng-Sub` or `English`
 5. use optional argument `-s` for the season number. If not specified all seasons will be scraped but not the movies or specials. -> Providing `0` as season number scrapes the respective movies or specials of that series
 6. use optional argument `-e` for the episode number. If not specified all episodes of the season will be scraped
 7. use optional argument `-t` to specify the number of threads or concurrent downloads. Default is 2. Do not choose too high numbers as the server might block too frequent requests
