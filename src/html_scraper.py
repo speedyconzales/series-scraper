@@ -102,12 +102,12 @@ def find_bs_link_to_episode(url, provider):
     )
     play_div.click()
     if provider == "VOE":
-        video_in_media_provider = WebDriverWait(driver, 0).until(
+        video_in_media_provider = WebDriverWait(driver, 120).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, '.hoster-player a'))
         )
         content_link = video_in_media_provider.get_attribute('href')
     elif provider in ["Streamtape", "Vidoza"]:
-        video_in_media_provider = WebDriverWait(driver, 0).until(
+        video_in_media_provider = WebDriverWait(driver, 120).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, '.hoster-player iframe'))
         )
         content_link = video_in_media_provider.get_attribute('src')
