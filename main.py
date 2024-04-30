@@ -126,5 +126,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        pass
+        time.sleep(1)
     logger.info("------------- Series-Scraper stopped ------------")

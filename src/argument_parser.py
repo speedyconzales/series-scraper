@@ -21,15 +21,13 @@ class ArgumentParser:
 
     parser = argparse.ArgumentParser(description="Series-Scraper")
 
-    parser.add_argument(
-        "type", choices=["serie", "anime"], help="specify the type of the content"
-    )
     parser.add_argument("url", type=is_valid_url, help="url of the series")
-    parser.add_argument("language", choices=["Deutsch", "Ger-Sub", "Eng-Sub", "English"], help="desired language of the content")
 
+    parser.add_argument("-l", "--language", choices=["Ger-Sub", "Eng-Sub", "English"], help="desired language of the content")
     parser.add_argument("-s", "--season", type=int, help="specify the season")
     parser.add_argument("-e", "--episode", type=int, help="specify the episode")
     parser.add_argument("-t", "--threads", type=int, help="specify the number of threads or concurrent downloads")
+    parser.add_argument("-a", "--anime", action='store_true', help="specify if the content is an anime")
 
     args = parser.parse_args()
 
@@ -42,15 +40,16 @@ class ArgumentParser:
         content_name = args.url.path.split("/")[2]
         url = f"https://bs.to/serie/{content_name}/"
     else:
+        hoster_folder_mapping = {"aniworld.to": "anime", "s.to": "serie"}
         burning_series = False
         try:
             content_name = args.url.path.split("/")[3]
         except IndexError:
             parser.error("Malformed url. The name of the series needs to be in the url")
-        url = f"https://{args.url.hostname}/{args.type}/stream/{content_name}/"
-    language = args.language
+        url = f"https://{args.url.hostname}/{hoster_folder_mapping[args.url.hostname]}/stream/{content_name}/"
+    language = args.language if args.language is not None else "Deutsch"
     content_name = content_name.replace("-", " ").title()
-    if args.type == "anime":
+    if args.anime or args.url.hostname == "aniworld.to":
         output_path = f"{anime_path}/{content_name}"
     else:
         output_path = f"{series_path}/{content_name}"
