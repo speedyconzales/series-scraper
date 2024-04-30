@@ -28,7 +28,7 @@ def get_bs_href_by_language(url, language, provider, season, episode):
     links = soup.find_all('i', class_='hoster')
     for link in links:
         href = str(link.parent.get("href"))
-        if f"{season}/{episode}" in href:
+        if f"{season}/{episode}-" in href:
             episode_has_language = True
             parts = href.split("/")
             link_provider = parts[-1]
