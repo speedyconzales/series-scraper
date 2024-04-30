@@ -37,7 +37,7 @@ def get_bs_href_by_language(url, language, provider, season, episode):
     if not episode_has_language:
         raise LanguageError(logger.error(f"Episode {episode} in season {season} does not support language '{language}'"))
     raise ProviderError(
-        logger.error(f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language'{language}'")
+        logger.error(f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language '{language}'")
     )
 
 
@@ -64,5 +64,5 @@ def get_href_by_language(html_response, language, provider, season, episode):
         href = provider_li_element.get("data-link-target", "")
         return href
     raise ProviderError(
-        logger.error(f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language'{language}'")
+        logger.error(f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language '{language}'")
     )
