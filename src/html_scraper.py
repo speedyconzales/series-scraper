@@ -1,12 +1,12 @@
 import re
 import sys
 import urllib.request
-import undetected_chromedriver as uc
 
 from urllib.parse import urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from seleniumbase import SB
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
@@ -83,37 +83,19 @@ def find_content_url(url, provider):
         content_link = "https://" + provider + ".com/" + content_link.group()[:-1]
     logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
-    
+
 
 def find_bs_link_to_episode(url, provider):
-    options = uc.ChromeOptions()
-    # headless is currently not working with undetected_chromedriver
-    # and there are captchas you have to solve
-    # TODO: find another way to run headless
-    #options.add_argument("--headless")
-    driver = uc.Chrome(options=options)
-    driver.get(url)
-    cookie = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, '.cc-compliance a'))
-    )
-    cookie.click()
-    play_div = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, '.hoster-player .play'))
-    )
-    play_div.click()
-    if provider == "VOE":
-        video_in_media_provider = WebDriverWait(driver, 120).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.hoster-player a'))
-        )
-        content_link = video_in_media_provider.get_attribute('href')
-    elif provider in ["Streamtape", "Vidoza"]:
-        video_in_media_provider = WebDriverWait(driver, 120).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.hoster-player iframe'))
-        )
-        content_link = video_in_media_provider.get_attribute('src')
-    else:
-        logger.error("No supported hoster available for this episode")
-    driver.quit()
+    with SB(uc=True, headless=False) as sb:
+        sb.open(url)
+        sb.click('.cc-compliance a')
+        sb.click('.hoster-player .play')
+        if provider == "VOE":
+            content_link = sb.wait_for_element_visible('.hoster-player a', timeout=120).get_attribute("href")
+        elif provider in ["Streamtape", "Vidoza"]:
+            content_link = sb.wait_for_element_visible('.hoster-player iframe', timeout=120).get_attribute("src")
+        else:
+            logger.error("No supported hoster available for this episode")
     return content_link
 
 

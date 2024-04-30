@@ -4,12 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-beautifulsoup4 = "*"
 pyyaml = "*"
-selenium = ">=4.10.0"
-undetected-chromedriver = "==3.5.5"
+seleniumbase = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
