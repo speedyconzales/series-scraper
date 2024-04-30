@@ -1,6 +1,8 @@
+import os
 import re
 import sys
 import urllib.request
+import zipfile
 
 from urllib.parse import urlsplit, urlunsplit
 
@@ -85,8 +87,25 @@ def find_content_url(url, provider):
     return content_link
 
 
+def find_and_unzip_crx():
+    src_path = os.path.dirname(os.path.abspath(__file__))
+    extensions_path = os.path.join(src_path, "extensions")
+    for root, dirs, files in os.walk(extensions_path):
+        for file in files:
+            if file.endswith('.crx'):
+                extract_path = os.path.join(extensions_path, os.path.splitext(os.path.basename(file))[0])
+                os.makedirs(extract_path, exist_ok=True)
+                if not os.listdir(extract_path):
+                    crx_file_path = os.path.join(root, file)
+                    with zipfile.ZipFile(crx_file_path, 'r') as zip_ref:
+                        zip_ref.extractall(extract_path)
+                    logger.debug(f"Extracted {file} in {extract_path}")
+                break
+    return extract_path
+
+
 def find_bs_link_to_episode(url, provider):
-    with SB(uc=True, headless=False) as sb:
+    with SB(uc=True, headless2=True, extension_dir=find_and_unzip_crx()) as sb:
         sb.open(url)
         sb.click('.cc-compliance a')
         sb.click('.hoster-player .play')

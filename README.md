@@ -4,8 +4,7 @@
 - headless and completely automated scraping of the following sites:
   - [aniworld.to](https://aniworld.to)
   - [s.to](https://s.to)
-- needs a GUI and requires user interaction (solve captchas):
-  - [bs.to](https://bs.to)
+  - [bs.to](https://bs.to) -> uses headless browser for scraping and solving captchas
 
 ## Supported Hosters
 - [VOE](https://voe.sx)
@@ -16,8 +15,9 @@
 
 1. install [ffmpeg](https://ffmpeg.org/download.html) and make sure it is in PATH -> `ffmpeg -version`
 2. install [chrome](https://www.google.com/chrome/) or [chromium](https://www.chromium.org/getting-involved/download-chromium/)
-3. install requirements via pipenv and Pipfile OR create a virtual environment and install them via pip and requirements.txt
-4. copy and rename template.yml to config.yml and fill in the required folder paths for the respective type of the content
+3. install requirements via `pipenv` and Pipfile OR create a virtual environment and install them via `pip` and requirements.txt
+4. copy and rename `template.yml` to `config.yml` and fill in the required folder paths for the respective type of the content
+5. if you want to download from [bs.to](?plain=1#L7) you need to make sure that the recaptcha-solver.crx binary file is present in the src/extensions folder. Either download it with `git lfs` or download it as a raw file from the [github repo](https://github.com/speedyconzales/series-scraper/blob/main/src/extensions/recaptcha-solver.crx)
 
 ## Usage
 1. use `main.py`

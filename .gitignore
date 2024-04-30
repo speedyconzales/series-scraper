@@ -3,6 +3,8 @@
 *.mp4
 config.yml
 .vscode/
+src/extensions/*/
+downloaded_files/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
