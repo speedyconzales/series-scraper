@@ -27,7 +27,7 @@ jobs:
             --platform linux/amd64,linux/arm/v7,linux/arm64 .
       - name: Setup tmate session
         if: failure()
+        timeout-minutes: 10
         uses: mxschmitt/action-tmate@v3
         with: 
             limit-access-to-actor: true
-            timeout-minutes: 5
