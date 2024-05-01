@@ -19,13 +19,15 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           version: latest
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with: 
-            limit-access-to-actor: true
       - name: build the image
         run: |
           docker buildx build --progress=plain --push \
             --tag docker.io/speedyconzales/series-scraper:latest \
             --tag ghcr.io/speedyconzales/series-scraper:latest \
             --platform linux/amd64,linux/arm/v7,linux/arm64 .
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with: 
+            limit-access-to-actor: true
+            timeout-minutes: 5
