@@ -51,7 +51,7 @@ def check_episodes(
             except ProviderError:
                 provider_episodes.append(episode)
                 continue
-            except [HTTPError, URLError] as message:
+            except (HTTPError, URLError) as message:
                 logger.error(f"{message} while working on episode {episode} and provider {provider}")
                 provider_episodes.append(episode)
                 continue
