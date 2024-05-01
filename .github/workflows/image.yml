@@ -22,7 +22,7 @@ jobs:
           version: latest
       - name: build the image
         run: |
-          docker buildx build --push \
+          docker buildx build --progress=plain --push \
             --tag docker.io/speedyconzales/series-scraper:latest \
             --tag ghcr.io/speedyconzales/series-scraper:latest \
             --platform linux/amd64,linux/arm/v7,linux/arm64 .
