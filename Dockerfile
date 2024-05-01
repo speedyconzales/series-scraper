@@ -11,8 +11,6 @@ RUN git lfs install
 # Copy the current directory contents into the container at /
 RUN git clone https://github.com/speedyconzales/series-scraper.git /series-scraper
 
-RUN ls -lah && ls -lah /series-scraper
-
 COPY template.yml config.yml
 
 # Stage 2: Final setup
