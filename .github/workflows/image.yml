@@ -18,6 +18,7 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3
         with:
+          buildkitd-flags: --debug
           version: latest
       - name: build the image
         run: |
