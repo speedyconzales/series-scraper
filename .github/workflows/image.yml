@@ -29,5 +29,5 @@ jobs:
         if: failure()
         timeout-minutes: 10
         uses: mxschmitt/action-tmate@v3
-        with: 
+        with:
             limit-access-to-actor: true

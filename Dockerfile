@@ -11,7 +11,7 @@ RUN git lfs install
 # Copy the current directory contents into the container at /
 RUN git clone https://github.com/speedyconzales/series-scraper.git /series-scraper
 
-COPY template.yml config.yml
+RUN mv template.yml config.yml
 
 # Stage 2: Final setup
 FROM python:3.12.3-slim-bookworm AS final
