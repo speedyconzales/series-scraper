@@ -12,11 +12,13 @@
 - [Streamtape](https://streamtape.com)
 
 ## Usage
-1. if you are familiar with docker just use the following [docker-compose.yml](https://github.com/speedyconzales/series-scraper/blob/main/docker-compose.yml) file and run `docker compose up series-scraper <arguments>` in the same directory
-2. if you don't want to use docker or there is no suitable docker image available for your system, you can use the following steps to run the scraper:
-   - clone the repository
-   - install the dependencies
-   - run the scraper `python main.py` with the provided arguments
+1. if you are familiar with docker just use:
+   1. `docker pull speedyconzales/series-scraper`
+   2. `docker run --rm -v <path-to-your-anime-folder>:/series-scraper/anime -v <path-to-your-series-folder>:/series-scraper/series speedyconzales/series-scraper` followed by the arguments you want to provide
+2. if you don't want to use docker or there is no suitable docker image available for your architecture, you can use the following steps to run the scraper:
+   1. clone the repository
+   2. install the dependencies
+   3. run the scraper `python main.py` with the provided arguments
 
 ## Dependencies
 
