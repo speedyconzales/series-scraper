@@ -1,0 +1,7 @@
+services:
+  series-scraper:
+    container_name: series-scraper
+    image: speedyconzales/series-scraper
+    volumes:
+      - ./Animes:/series-scraper/Animes
+      - ./Series:/series-scraper/Series
