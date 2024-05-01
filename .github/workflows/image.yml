@@ -8,6 +8,8 @@ jobs:
   docker-hub:
     runs-on: ubuntu-latest
     steps:
+      - name: download Dockerfile
+        run: curl -O https://raw.githubusercontent.com/speedyconzales/series-scraper/master/Dockerfile
       - name: login to docker hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: login to ghcr
