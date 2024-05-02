@@ -1,0 +1,12 @@
+.git/
+.DS_Store
+*.mp4
+.idea/
+.vscode/
+downloaded_files/
+.github/
+__pycache__/
+*.py[cod]
+*$py.class
+test/
+config.yml

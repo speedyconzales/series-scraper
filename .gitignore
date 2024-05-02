@@ -5,6 +5,7 @@ config.yml
 .vscode/
 src/extensions/*/
 downloaded_files/
+test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

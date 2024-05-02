@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+if [[ ! -f /app/config.yml ]]; then
+    mv /app/template.yml /app/config.yml
+fi
+# permissions
+lsiown -R abc:abc /app
+lsiown -R abc:abc /usr/local/lib/python3.11
