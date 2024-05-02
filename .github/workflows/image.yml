@@ -11,12 +11,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: download Dockerfile
-        run: curl -O https://raw.githubusercontent.com/speedyconzales/series-scraper/master/Dockerfile
       - name: login to docker hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: login to ghcr
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: checkout lfs
+        run: git lfs checkout
       - name: install buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
@@ -27,7 +31,7 @@ jobs:
           docker buildx build --push \
             --tag docker.io/speedyconzales/series-scraper:latest \
             --tag ghcr.io/speedyconzales/series-scraper:latest \
-            --platform linux/amd64,linux/arm/v7,linux/arm64 .
+            --platform linux/amd64,linux/arm64 .
       - name: Setup tmate session
         if: failure()
         timeout-minutes: 10

@@ -1,37 +1,14 @@
-# Stage 1: Checkout repository and prepare environment
-FROM python:3.12.3-slim-bookworm AS builder
+FROM ghcr.io/linuxserver/baseimage-debian:bookworm
+LABEL org.opencontainers.image.source="https://github.com/speedyconzales/series-scraper"
 
-# Set the working directory
-WORKDIR /series-scraper
+WORKDIR /app
 
-# Install git and git-lfs for cloning the repository
-RUN apt-get update && apt-get install -y git git-lfs
-RUN git lfs install
+COPY . /app/
 
-# Copy the current directory contents into the container at /
-RUN git clone https://github.com/speedyconzales/series-scraper.git /series-scraper
+COPY root/ /
 
-RUN mv template.yml config.yml
+RUN chmod +x /etc/s6-overlay/s6-rc.d/init-series-scraper-config/run
 
-# Stage 2: Final setup
-FROM python:3.12.3-slim-bookworm AS final
-LABEL org.opencontainers.image.source="https://github.com/speedyconzales/seroes-scraper"
+RUN apt-get update && apt-get install -y chromium chromium-driver ffmpeg python3.11-full python3-pip
 
-WORKDIR /series-scraper
-
-COPY --from=builder /series-scraper /series-scraper
-
-# Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
-
-# Install Chromium
-RUN apt-get update && apt-get install -y chromium
-
-# Install Chromium driver
-RUN apt-get install -y chromium-driver
-
-# Install FFmpeg
-RUN apt-get install -y ffmpeg
-
-# Set main.py as entrypoint
-ENTRYPOINT ["python", "main.py"]
+RUN python3 -m pip install -r requirements.txt --break-system-packages
