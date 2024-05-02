@@ -1,41 +1,37 @@
 # Stage 1: Checkout repository and prepare environment
-FROM ghcr.io/linuxserver/baseimage-alpine:edge AS builder
+FROM python:3.12.3-slim-bookworm AS builder
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /series-scraper
 
 # Install git and git-lfs for cloning the repository
-RUN apk update && apk add git git-lfs
+RUN apt-get update && apt-get install -y git git-lfs
 RUN git lfs install
 
 # Copy the current directory contents into the container at /
-RUN git clone https://github.com/speedyconzales/series-scraper.git /app
+RUN git clone https://github.com/speedyconzales/series-scraper.git /series-scraper
 
 RUN mv template.yml config.yml
 
 # Stage 2: Final setup
-FROM ghcr.io/linuxserver/baseimage-alpine:edge
+FROM python:3.12.3-slim-bookworm AS final
 LABEL org.opencontainers.image.source="https://github.com/speedyconzales/seroes-scraper"
 
-WORKDIR /app
+WORKDIR /series-scraper
 
-RUN apk update
-
-# Install Python 3
-RUN apk add --no-cache python3=~3.12 py3-pip
-
-COPY --from=builder /app /app
+COPY --from=builder /series-scraper /series-scraper
 
 # Install any needed packages specified in requirements.txt
-RUN python3 -m pip install -r requirements.txt --break-system-packages
+RUN pip install -r requirements.txt
 
 # Install Chromium
-RUN apk add --no-cache chromium
+RUN apt-get update && apt-get install -y chromium
 
 # Install Chromium driver
-RUN apk add --no-cache chromium-chromedriver
+RUN apt-get install -y chromium-driver
 
 # Install FFmpeg
-RUN apk add --no-cache ffmpeg
+RUN apt-get install -y ffmpeg
 
-#ENTRYPOINT ["/bin/sh", "-c", "exec /init; python3 /app/main.py"]
+# Set main.py as entrypoint
+ENTRYPOINT ["python", "main.py"]
