@@ -10,3 +10,4 @@ __pycache__/
 *$py.class
 test/
 config.yml
+src/extensions/recaptcha-solver/
