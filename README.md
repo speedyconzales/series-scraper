@@ -14,11 +14,11 @@
 ## Usage
 1. if you are familiar with docker just use:
    1. `docker pull speedyconzales/series-scraper`
-   2. `docker run --rm -e PUID=<your_user_id> -e PGID=<your_group_id> -v <path-to-your-anime-folder>:/app/anime -v <path-to-your-series-folder>:/app/series speedyconzales/series-scraper s6-setuidgid abc python main.py` followed by the arguments you want to provide
+   2. `docker run --rm -e PUID=<your_user_id> -e PGID=<your_group_id> -v <path-to-your-anime-folder>:/app/anime -v <path-to-your-series-folder>:/app/series speedyconzales/series-scraper s6-setuidgid abc python3 main.py` followed by the arguments you want to provide
 2. if you don't want to use docker or there is no suitable docker image available for your architecture, you can use the following steps to run the scraper:
    1. clone the repository
    2. install the dependencies
-   3. run the scraper `python main.py` with the provided arguments
+   3. run the scraper `python3 main.py` with the provided arguments
 
 ## Dependencies
 

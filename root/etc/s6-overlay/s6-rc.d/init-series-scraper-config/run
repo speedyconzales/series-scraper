@@ -6,4 +6,4 @@ if [[ ! -f /app/config.yml ]]; then
 fi
 # permissions
 lsiown -R abc:abc /app
-lsiown -R abc:abc /usr/local/lib/python3.11
+lsiown -R abc:abc /usr/lib/python3.11
