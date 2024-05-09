@@ -24,7 +24,7 @@ headless and completely automated scraping of the following sites:
          docker run \
          --rm \
          -e PUID=[YOUR_USER_ID] \
-         -e PGID=[YOUR_GROPU_ID] \
+         -e PGID=[YOUR_GROUP_ID] \
          -v [PATH_TO_YOUR_ANIME_FOLDER]:/app/anime \
          -v [PATH_TO_YOUR_SERIES_FOLDER]:/app/series \
          speedyconzales/series-scraper \
@@ -45,7 +45,7 @@ headless and completely automated scraping of the following sites:
                - [PATH_TO_YOUR_SERIES_FOLDER]:/app/series
             environment:
                - PUID=[YOUR_USER_ID]
-               - PGID=[YOUR_GROPU_ID]
+               - PGID=[YOUR_GROUP_ID]
                - TZ=Europe/Berlin
          ```
          and run
@@ -92,9 +92,10 @@ headless and completely automated scraping of the following sites:
 |     `<url>`      | Provide the `<url>` of the series. The `series-name` has to be present in the url. That means: navigate to one of the supported sites. Search for the series you want to download and simply copy/paste the url. The url should look like `https://aniworld.to/anime/stream/<series-name>` or `https://s.to/serie/stream/<series-name>` or `https://bs.to/serie/<series-name>` |
 |     `--help`     | get a list of all available arguments                                                                                                                                                                                                                                                                                                                                          |
 | `-l, --language` | **Default:** `Deutsch`. Choose the language of the content being either `Ger-Sub`, `Eng-Sub` or `English`                                                                                                                                                                                                                                                                      |
-|  `-s, --season`  | Choose the season number. If not specified all seasons will be scraped but not the movies or specials. -> Providing `0` as season number scrapes the respective movies or specials of that series                                                                                                                                                                              |
-| `-e, --episode`  | Choose the episode number. If not specified all episodes of the season will be scraped                                                                                                                                                                                                                                                                                         |
+|  `-s, --season`  | **Default:** All seasons will be scraped but not the movies or specials. Choose the season number. -> Providing `0` as season number scrapes the respective movies or specials of that series                                                                                                                                                                                  |
+| `-e, --episode`  | **Default:** All episodes of the season will be scraped. Choose either one episode or a list of episodes separated by spaces. You can also specify a range of episodes e.g.: `-e 2 3 10-15 17`                                                                                                                                                                                 |
 | `-t, --threads`  | **Default:** 2. Specify the number of threads or concurrent downloads. Do not choose too high numbers as the server might block too frequent requests                                                                                                                                                                                                                          |
+| `-p, --provider` | **Default:** Downloads will follow this priority: VOE > Vidoza > Streamtape. If the episode is not available on the hoster it will try the next. Specify the hoster/provider you want to download from                                                                                                                                                                         |
 |  `-a, --anime`   | Declare this content as anime. Only useful for `bs.to` as it does not distinguish between series and anime on the site                                                                                                                                                                                                                                                         |
 
 ## Credits

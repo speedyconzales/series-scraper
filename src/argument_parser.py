@@ -2,7 +2,7 @@ import argparse
 import yaml
 
 from urllib.parse import urlparse
-from src.html_scraper import get_seasons
+from src.html_scraper import get_seasons, get_episodes
 
 
 class ArgumentParser:
@@ -13,6 +13,16 @@ class ArgumentParser:
                 return url
             raise argparse.ArgumentTypeError('Site not supported. Please create a feature request on GitHub')
         raise argparse.ArgumentTypeError('Malformed url. Please provide a valid url')
+    
+    def parse_range(episodes):
+        all_episodes = []
+        for item in episodes:
+            if "-" in item:
+                start, end = map(int, item.split("-"))
+                all_episodes.extend(list(range(start, end + 1)))
+            else:
+                all_episodes.append(int(item))
+        return all_episodes
 
     with open('config.yml', 'r') as yaml_file:
         config = yaml.safe_load(yaml_file)
@@ -25,11 +35,14 @@ class ArgumentParser:
 
     parser.add_argument("-l", "--language", choices=["Ger-Sub", "Eng-Sub", "English"], help="desired language of the content")
     parser.add_argument("-s", "--season", type=int, help="specify the season")
-    parser.add_argument("-e", "--episode", type=int, help="specify the episode")
+    parser.add_argument("-e", "--episode", nargs='+', type=str, help="specify a list of episode numbers")
     parser.add_argument("-t", "--threads", type=int, help="specify the number of threads or concurrent downloads")
+    parser.add_argument("-p", "--provider", choices=["VOE", "Vidoza", "Streamtape"], help="Choose the hoster/provider you want to download from")
     parser.add_argument("-a", "--anime", action='store_true', help="specify if the content is an anime")
 
     args = parser.parse_args()
+
+    provider = [args.provider] if args.provider else []
 
     if args.episode and args.season is None:
         parser.error("You have to specify a season in order to specify an episode")
@@ -54,4 +67,7 @@ class ArgumentParser:
     else:
         output_path = f"{series_path}/{content_name}"
     seasons = [args.season] if args.season is not None else get_seasons(url, burning_series)
-    episodes = [args.episode] if args.episode else 0
+    season_episodes = get_episodes(url, args.season, burning_series)
+    episodes = parse_range(args.episode) if args.episode else season_episodes
+    if not set(episodes).issubset(set(season_episodes)):
+        parser.error(f"The following episodes are not available in season {args.season}: {set(episodes).difference(set(season_episodes))}")
