@@ -70,13 +70,14 @@ def check_episodes(
 
 
 def main():
-    language, url, output_path, content_name, seasons, desired_episodes, threads, burning_series = (
+    language, url, output_path, content_name, seasons, desired_episodes, provider, threads, burning_series = (
         ArgumentParser.language,
         ArgumentParser.url,
         ArgumentParser.output_path,
         ArgumentParser.content_name,
         ArgumentParser.seasons,
         ArgumentParser.episodes,
+        ArgumentParser.provider,
         ArgumentParser.threads,
         ArgumentParser.burning_series,
     )
@@ -85,7 +86,7 @@ def main():
 
     os.makedirs(output_path, exist_ok=True)
 
-    provider_list = ["VOE", "VOE", "Vidoza", "Streamtape"]
+    provider_list = ["VOE", "VOE", "Vidoza", "Streamtape"] if not provider else provider
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"

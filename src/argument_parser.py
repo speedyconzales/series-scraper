@@ -37,9 +37,12 @@ class ArgumentParser:
     parser.add_argument("-s", "--season", type=int, help="specify the season")
     parser.add_argument("-e", "--episode", nargs='+', type=str, help="specify a list of episode numbers")
     parser.add_argument("-t", "--threads", type=int, help="specify the number of threads or concurrent downloads")
+    parser.add_argument("-p", "--provider", choices=["VOE", "Vidoza", "Streamtape"], help="Choose the hoster/provider you want to download from")
     parser.add_argument("-a", "--anime", action='store_true', help="specify if the content is an anime")
 
     args = parser.parse_args()
+
+    provider = [args.provider] if args.provider else []
 
     if args.episode and args.season is None:
         parser.error("You have to specify a season in order to specify an episode")
