@@ -31,7 +31,6 @@ def check_episodes(
     url,
     season,
     episodes,
-    desired_episodes,
     language,
     provider,
     burning_series,
@@ -40,8 +39,6 @@ def check_episodes(
     language_episodes = []
     future_list = []
     for episode in episodes:
-        if episode not in desired_episodes:
-            continue
         file_name = f"{season_path}/{content_name} - s{season:02}e{episode:0{3 if len(episodes) > 99 else 2}} - {language}.mp4"
         logger.debug(f"File name will be: {file_name}")
         if not already_downloaded(file_name):
@@ -70,7 +67,7 @@ def check_episodes(
 
 
 def main():
-    language, url, output_path, content_name, seasons, desired_episodes, provider, threads, burning_series = (
+    language, url, output_path, content_name, seasons, episodes, provider, threads, burning_series = (
         ArgumentParser.language,
         ArgumentParser.url,
         ArgumentParser.output_path,
@@ -92,9 +89,9 @@ def main():
         season_path = f"{output_path}/Season {season:02}"
         os.makedirs(season_path, exist_ok=True)
         if season > 0 or burning_series:
-            episodes = get_episodes(url, season, burning_series)
+            episodes = episodes if episodes else get_episodes(url, season, burning_series)
         else:
-            episodes = get_specials(url)
+            episodes = episodes if episodes else get_specials(url)
         logger.info(f"Season {season} has {len(get_episodes(url, season, burning_series)) if season > 0 or burning_series else len(get_specials(url))} Episodes.")
         failed_episodes = []
         for provider in provider_list:
@@ -109,7 +106,6 @@ def main():
                     url,
                     season,
                     episodes,
-                    desired_episodes,
                     language,
                     provider,
                     burning_series,
