@@ -43,10 +43,7 @@ class ArgumentParser:
     args = parser.parse_args()
 
     provider = [args.provider] if args.provider else []
-
-    if args.episode and args.season is None:
-        parser.error("You have to specify a season in order to specify an episode")
-
+    
     threads = args.threads if args.threads is not None else 2
     if args.url.hostname == "bs.to":
         burning_series = True
@@ -67,7 +64,12 @@ class ArgumentParser:
     else:
         output_path = f"{series_path}/{content_name}"
     seasons = [args.season] if args.season is not None else get_seasons(url, burning_series)
-    season_episodes = get_episodes(url, args.season, burning_series)
-    episodes = parse_range(args.episode) if args.episode else season_episodes
-    if not set(episodes).issubset(set(season_episodes)):
-        parser.error(f"The following episodes are not available in season {args.season}: {set(episodes).difference(set(season_episodes))}")
+    if args.episode:
+        if args.season is None:
+            parser.error("You have to specify a season in order to specify an episode")
+        season_episodes = get_episodes(url, args.season, burning_series)
+        episodes = parse_range(args.episode)
+        if not set(episodes).issubset(set(season_episodes)):
+            parser.error(f"The following episodes are not available in season {args.season}: {set(episodes).difference(set(season_episodes))}")
+    else:
+        episodes = 0
