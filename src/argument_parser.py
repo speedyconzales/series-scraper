@@ -2,7 +2,7 @@ import argparse
 import yaml
 
 from urllib.parse import urlparse
-from src.html_scraper import get_seasons, get_episodes
+from src.html_scraper import get_seasons, get_episodes, get_specials
 
 
 class ArgumentParser:
@@ -43,7 +43,7 @@ class ArgumentParser:
     args = parser.parse_args()
 
     provider = [args.provider] if args.provider else []
-    
+
     threads = args.threads if args.threads is not None else 2
     if args.url.hostname == "bs.to":
         burning_series = True
@@ -67,7 +67,7 @@ class ArgumentParser:
     if args.episode:
         if args.season is None:
             parser.error("You have to specify a season in order to specify an episode")
-        season_episodes = get_episodes(url, args.season, burning_series)
+        season_episodes = get_episodes(url, args.season, burning_series) if args.season > 0 or burning_series else get_specials(url)
         episodes = parse_range(args.episode)
         if not set(episodes).issubset(set(season_episodes)):
             parser.error(f"The following episodes are not available in season {args.season}: {set(episodes).difference(set(season_episodes))}")
