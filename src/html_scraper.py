@@ -4,6 +4,9 @@ import sys
 import urllib.request
 import zipfile
 
+from random import choices
+from string import ascii_letters, digits
+from time import time
 from urllib.parse import urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
@@ -17,7 +20,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from src.episode_link_grabber import get_href_by_language, get_bs_href_by_language
 from src.logger import logger
 
-
+DOODSTREAM_PATTERN = re.compile(r"/pass_md5/[\w-]+/(?P<token>[\w-]+)")
 VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
                 re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"')]
 STREAMTAPE_PATTERN = re.compile(r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'")
@@ -60,16 +63,19 @@ def get_voe_content_link_with_selenium(provider_url):
 
 
 def find_content_url(url, provider):
-    html_page = urllib.request.urlopen(url)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+    req = urllib.request.Request(url, headers=headers)
+    decoded_html = urllib.request.urlopen(req).read().decode("utf-8")
     if provider == "Vidoza":
-        soup = BeautifulSoup(html_page, features="html.parser")
+        soup = BeautifulSoup(decoded_html, features="html.parser")
         content_link = soup.find("source").get("src")
     elif provider == "VOE":
         def content_link_is_not_valid(content_link):
             return content_link is None or not content_link.startswith("https://")
-        html_page = html_page.read().decode("utf-8")
         for VOE_PATTERN in VOE_PATTERNS:
-            content_link = VOE_PATTERN.search(html_page).group("url")
+            content_link = VOE_PATTERN.search(decoded_html).group("url")
             if content_link_is_not_valid(content_link):
                 continue
             else:
@@ -79,10 +85,18 @@ def find_content_url(url, provider):
             logger.critical("Failed to find the video links of provider VOE. Exiting...")
             sys.exit(1)
     elif provider == "Streamtape":
-        content_link = STREAMTAPE_PATTERN.search(html_page.read().decode("utf-8"))
+        content_link = STREAMTAPE_PATTERN.search(decoded_html)
         if content_link is None:
             return find_content_url(url, provider)
         content_link = "https://" + provider + ".com/" + content_link.group()[:-1]
+    elif provider == "Doodstream":
+        pattern_match = DOODSTREAM_PATTERN.search(decoded_html)
+        pass_md5 = pattern_match.group()
+        token = pattern_match.group("token")
+        headers['Referer'] = 'https://d0000d.com/'
+        req = urllib.request.Request(f"https://d0000d.com{pass_md5}", headers=headers)
+        response_page = urllib.request.urlopen(req)
+        content_link = f"{response_page.read().decode("utf-8")}{''.join(choices(ascii_letters + digits, k=10))}?token={token}&expiry={int(time() * 1000)}"
     logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
 
@@ -110,9 +124,15 @@ def find_bs_link_to_episode(url, provider):
         sb.click('.cc-compliance a')
         sb.click('.hoster-player .play')
         if provider == "VOE":
-            content_link = sb.wait_for_element_visible('.hoster-player a', timeout=120).get_attribute("href")
+            content_link = sb.wait_for_element_visible('.hoster-player a', timeout=240).get_attribute("href")
+        elif provider == "Doodstream":
+            sb.switch_to_tab(1, timeout=240)
+            html = sb.get_page_source()
+            soup = BeautifulSoup(html, features="html.parser")
+            iframe_src = soup.find("iframe").get("src")
+            content_link = f"https://d000d.com{iframe_src}"
         elif provider in ["Streamtape", "Vidoza"]:
-            content_link = sb.wait_for_element_visible('.hoster-player iframe', timeout=120).get_attribute("src")
+            content_link = sb.wait_for_element_visible('.hoster-player iframe', timeout=240).get_attribute("src")
         else:
             logger.error("No supported hoster available for this episode")
     return content_link

@@ -9,6 +9,7 @@ headless and completely automated scraping of the following sites:
 ## Supported Hosters
 - [VOE](https://voe.sx)
 - [Vidoza](https://vidoza.net)
+- [Doodstream](https://doodstream.com)
 - [Streamtape](https://streamtape.com)
 
 ## Usage

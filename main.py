@@ -62,7 +62,7 @@ def check_episodes(
                 provider_episodes.append(episode)
                 continue
             logger.debug(f"{provider} content URL is: {content_url}")
-            future_list.append(create_new_download_thread(executor, content_url, file_name, episode))
+            future_list.append(create_new_download_thread(executor, content_url, file_name, episode, provider))
     return provider_episodes, language_episodes, future_list
 
 
@@ -83,7 +83,7 @@ def main():
 
     os.makedirs(output_path, exist_ok=True)
 
-    provider_list = ["VOE", "VOE", "Vidoza", "Streamtape"] if not provider else provider
+    provider_list = ["VOE", "Vidoza", "Doodstream", "Streamtape"] if not provider else provider
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"

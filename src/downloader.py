@@ -13,9 +13,10 @@ def already_downloaded(file_name):
     return False
 
 
-def download_episode(url, file_name, episode):
+def download_episode(url, file_name, episode, provider):
     try:
-        ffmpeg_cmd = ["ffmpeg", "-i", url, "-c", "copy", "-nostdin", file_name]
+        ffmpeg_cmd = ["ffmpeg", "-headers", "Referer: https://d0000d.com/", "-i", url, "-c", "copy", "-nostdin", file_name] if provider == "Doodstream" \
+        else ["ffmpeg", "-i", url, "-c", "copy", "-nostdin", file_name]
         logger.info(f"Episode '{file_name}' added to queue.")
         if platform.system() == "Windows":
             subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -35,5 +36,5 @@ def download_episode(url, file_name, episode):
         return episode
 
 
-def create_new_download_thread(executor, content_url, file_name, episode):
-    return executor.submit(download_episode, content_url, file_name, episode)
+def create_new_download_thread(executor, content_url, file_name, episode, provider):
+    return executor.submit(download_episode, content_url, file_name, episode, provider)
