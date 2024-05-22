@@ -96,7 +96,7 @@ def find_content_url(url, provider):
         headers['Referer'] = 'https://d0000d.com/'
         req = urllib.request.Request(f"https://d0000d.com{pass_md5}", headers=headers)
         response_page = urllib.request.urlopen(req)
-        content_link = f"{response_page.read().decode("utf-8")}{''.join(choices(ascii_letters + digits, k=10))}?token={token}&expiry={int(time() * 1000)}"
+        content_link = f"{response_page.read().decode('utf-8')}{''.join(choices(ascii_letters + digits, k=10))}?token={token}&expiry={int(time() * 1000)}"
     logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
 
