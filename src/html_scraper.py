@@ -55,7 +55,7 @@ def get_voe_content_link_with_selenium(provider_url):
     )
     voe_play_div.click()
     video_in_media_provider = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, 'media-provider video source:nth-of-type(2)'))
+        EC.presence_of_element_located((By.CSS_SELECTOR, 'media-provider video source'))
     )
     content_link = video_in_media_provider.get_attribute('src')
     driver.quit()
@@ -75,11 +75,13 @@ def find_content_url(url, provider):
         def content_link_is_not_valid(content_link):
             return content_link is None or not content_link.startswith("https://")
         for VOE_PATTERN in VOE_PATTERNS:
-            content_link = VOE_PATTERN.search(decoded_html).group("url")
+            match = VOE_PATTERN.search(decoded_html)
+            if match is None:
+                continue
+            content_link = match.group("url")
             if content_link_is_not_valid(content_link):
                 continue
-            else:
-                return content_link
+            return content_link
         content_link = get_voe_content_link_with_selenium(url)
         if content_link_is_not_valid(content_link):
             logger.critical("Failed to find the video links of provider VOE. Exiting...")
