@@ -50,6 +50,11 @@ def get_voe_content_link_with_selenium(provider_url):
     chrome_options.add_argument('--disable-gpu')
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(provider_url)
+    decoded_html = urllib.request.urlopen(driver.current_url).read().decode("utf-8")
+    content_link = voe_pattern_search(decoded_html)
+    if content_link is not None:
+        driver.quit()
+        return content_link
     voe_play_div = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, 'voe-play'))
     )
@@ -61,7 +66,19 @@ def get_voe_content_link_with_selenium(provider_url):
     driver.quit()
     return content_link
 
+def voe_pattern_search(decoded_html):
+    for VOE_PATTERN in VOE_PATTERNS:
+        match = VOE_PATTERN.search(decoded_html)
+        if match is None:
+            continue
+        content_link = match.group("url")
+        if content_link_is_not_valid(content_link):
+            continue
+        return content_link
 
+def content_link_is_not_valid(content_link):
+    return content_link is None or not content_link.startswith("https://")
+    
 def find_content_url(url, provider):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -72,17 +89,9 @@ def find_content_url(url, provider):
         soup = BeautifulSoup(decoded_html, features="html.parser")
         content_link = soup.find("source").get("src")
     elif provider == "VOE":
-        def content_link_is_not_valid(content_link):
-            return content_link is None or not content_link.startswith("https://")
-        for VOE_PATTERN in VOE_PATTERNS:
-            match = VOE_PATTERN.search(decoded_html)
-            if match is None:
-                continue
-            content_link = match.group("url")
-            if content_link_is_not_valid(content_link):
-                continue
-            return content_link
-        content_link = get_voe_content_link_with_selenium(url)
+        content_link = voe_pattern_search(decoded_html)
+        if content_link is None:
+            content_link = get_voe_content_link_with_selenium(url)
         if content_link_is_not_valid(content_link):
             logger.critical("Failed to find the video links of provider VOE. Exiting...")
             sys.exit(1)
