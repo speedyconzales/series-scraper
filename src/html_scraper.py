@@ -16,6 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 from src.episode_link_grabber import get_href_by_language, get_bs_href_by_language
 from src.logger import logger
@@ -47,9 +48,13 @@ def get_episode_link(url, language, provider, season, episode, burning_series):
 def get_voe_content_link_with_selenium(provider_url):
     chrome_options = Options()
     chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--remote-debugging-pipe')
-    chrome_options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(options=chrome_options)
+    chrome_options.add_argument("--no-sandbox")
+    chrome_driver_path = "/usr/bin/chromedriver"
+    if os.path.exists(chrome_driver_path):
+        chrome_service = ChromeService(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    else:
+        driver = webdriver.Chrome(options=chrome_options)
     driver.get(provider_url)
     decoded_html = urllib.request.urlopen(driver.current_url).read().decode("utf-8")
     content_link = voe_pattern_search(decoded_html)
