@@ -47,6 +47,7 @@ def get_episode_link(url, language, provider, season, episode, burning_series):
 def get_voe_content_link_with_selenium(provider_url):
     chrome_options = Options()
     chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--remote-debugging-pipe')
     chrome_options.add_argument('--disable-gpu')
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(provider_url)
