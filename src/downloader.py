@@ -1,5 +1,4 @@
 import os
-import platform
 import subprocess
 
 from src.logger import logger, SUCCESS
@@ -18,15 +17,7 @@ def download_episode(url, file_name, episode, provider):
         ffmpeg_cmd = ["ffmpeg", "-headers", "Referer: https://d0000d.com/", "-i", url, "-c", "copy", "-nostdin", file_name] if provider == "Doodstream" \
         else ["ffmpeg", "-i", url, "-c", "copy", "-nostdin", file_name]
         logger.info(f"Episode '{file_name}' added to queue.")
-        if platform.system() == "Windows":
-            subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else:
-            subprocess.run(
-                ffmpeg_cmd,
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+        subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         logger.log(SUCCESS, f"Finished download of {file_name}.")
         return None
     except subprocess.CalledProcessError as e:
