@@ -117,7 +117,7 @@ def main():
                     ) if future.result() is not None else None
             if provider_episodes:
                 logger.warning(f"The following episodes of season {season} couldn't be downloaded from provider '{provider}': {provider_episodes}")
-                desired_episodes = provider_episodes
+                episodes = provider_episodes
                 continue
             break
         logger.error(f"The following episodes of season {season} couldn't be downloaded in the desired language: {failed_episodes}") if failed_episodes else None
