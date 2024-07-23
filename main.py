@@ -83,7 +83,7 @@ def main():
 
     os.makedirs(output_path, exist_ok=True)
 
-    provider_list = ["VOE", "Vidoza", "Doodstream", "Streamtape"] if not provider else provider
+    providers = ["VOE", "Vidoza", "Doodstream", "Streamtape"] if not provider else provider
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"
@@ -94,7 +94,7 @@ def main():
             episodes = desired_episodes if desired_episodes else get_specials(url)
         logger.info(f"Season {season} has {len(get_episodes(url, season, burning_series)) if season > 0 or burning_series else len(get_specials(url))} Episodes.")
         failed_episodes = []
-        for provider in provider_list:
+        for provider in providers:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=threads
             ) as executor:
@@ -117,6 +117,7 @@ def main():
                     ) if future.result() is not None else None
             if provider_episodes:
                 logger.warning(f"The following episodes of season {season} couldn't be downloaded from provider '{provider}': {provider_episodes}")
+                episodes = provider_episodes
                 continue
             break
         logger.error(f"The following episodes of season {season} couldn't be downloaded in the desired language: {failed_episodes}") if failed_episodes else None
