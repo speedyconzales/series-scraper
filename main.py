@@ -83,7 +83,7 @@ def main():
 
     os.makedirs(output_path, exist_ok=True)
 
-    providers = ["VOE", "Vidoza", "Doodstream", "Streamtape"] if not provider else provider
+    providers = ["Vidoza", "VOE", "Doodstream", "Streamtape"] if not provider else provider
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"
