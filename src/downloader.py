@@ -14,8 +14,13 @@ def already_downloaded(file_name):
 
 def download_episode(url, file_name, episode, provider):
     try:
-        ffmpeg_cmd = ["ffmpeg", "-headers", "Referer: https://d0000d.com/", "-i", url, "-c", "copy", "-nostdin", file_name] if provider == "Doodstream" \
-        else ["ffmpeg", "-i", url, "-c", "copy", "-nostdin", file_name]
+        ffmpeg_cmd = ["ffmpeg", "-i", url, "-c", "copy", "-nostdin", file_name]
+        if provider == "Doodstream":
+            ffmpeg_cmd.insert(1, "Referer: https://d0000d.com/")
+            ffmpeg_cmd.insert(1, "-headers")
+        elif provider == "Vidmoly":
+            ffmpeg_cmd.insert(1, "Referer: https://vidmoly.to/")
+            ffmpeg_cmd.insert(1, "-headers")
         logger.info(f"Episode '{file_name}' added to queue.")
         subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         logger.log(SUCCESS, f"Finished download of {file_name}.")
