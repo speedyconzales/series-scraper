@@ -27,7 +27,7 @@ VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
                 re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"')]
 STREAMTAPE_PATTERN = re.compile(r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'")
 VIDMOLY_PATTERN = re.compile(r"sources: \[{file:\"(?P<url>.*?)\"}]")
-
+SPEEDFILES_PATTERN = re.compile(r"var _0x5opu234 = \"(?P<content>.*?)\";")
 
 def get_episode_link(url, language, provider, season, episode, burning_series):
     if burning_series:
@@ -129,6 +129,23 @@ def find_content_url(url, provider):
         print(content_link)
         if content_link is None:
             logger.error(f"Failed to find the video link of provider Vidmoly")
+    elif provider == "SpeedFiles":
+        match = SPEEDFILES_PATTERN.search(decoded_html)
+        content = match.group("content")
+        content = b64decode(content).decode()
+        content = content.swapcase()
+        content = ''.join(reversed(content))
+        content = b64decode(content).decode()
+        content = ''.join(reversed(content))
+        next_content = ""
+        for i in range(0, len(content), 2):
+            next_content += chr(int(content[i:i + 2], 16))
+        content_link = ""
+        for char in next_content:
+            content_link += chr(ord(char) - 3)
+        content_link = content_link.swapcase()
+        content_link = ''.join(reversed(content_link))
+        content_link = b64decode(content_link).decode()
     logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
 
