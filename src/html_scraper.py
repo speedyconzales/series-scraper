@@ -26,7 +26,7 @@ DOODSTREAM_PATTERN = re.compile(r"/pass_md5/[\w-]+/(?P<token>[\w-]+)")
 VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
                 re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"')]
 STREAMTAPE_PATTERN = re.compile(r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'")
-
+SPEEDFILES_PATTERN = re.compile(r"var _0x5opu234 = \"(?P<content>.*?)\";")
 
 def get_episode_link(url, language, provider, season, episode, burning_series):
     if burning_series:
@@ -122,6 +122,23 @@ def find_content_url(url, provider):
         req = urllib.request.Request(f"https://d0000d.com{pass_md5}", headers=headers)
         response_page = urllib.request.urlopen(req)
         content_link = f"{response_page.read().decode('utf-8')}{''.join(choices(ascii_letters + digits, k=10))}?token={token}&expiry={int(time() * 1000)}"
+    elif provider == "SpeedFiles":
+        match = SPEEDFILES_PATTERN.search(decoded_html)
+        content = match.group("content")
+        content = b64decode(content).decode()
+        content = content.swapcase()
+        content = ''.join(reversed(content))
+        content = b64decode(content).decode()
+        content = ''.join(reversed(content))
+        next_content = ""
+        for i in range(0, len(content), 2):
+            next_content += chr(int(content[i:i + 2], 16))
+        content_link = ""
+        for char in next_content:
+            content_link += chr(ord(char) - 3)
+        content_link = content_link.swapcase()
+        content_link = ''.join(reversed(content_link))
+        content_link = b64decode(content_link).decode()
     logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
 
