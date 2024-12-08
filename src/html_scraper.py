@@ -26,6 +26,7 @@ DOODSTREAM_PATTERN = re.compile(r"/pass_md5/[\w-]+/(?P<token>[\w-]+)")
 VOE_PATTERNS = [re.compile(r"'hls': '(?P<url>.+)'"),
                 re.compile(r'prompt\("Node",\s*"(?P<url>[^"]+)"')]
 STREAMTAPE_PATTERN = re.compile(r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[^&\'\s]+&token=[^&\'\s]+\'")
+VIDMOLY_PATTERN = re.compile(r"sources: \[{file:\"(?P<url>.*?)\"}]")
 
 
 def get_episode_link(url, language, provider, season, episode, burning_series):
@@ -122,6 +123,12 @@ def find_content_url(url, provider):
         req = urllib.request.Request(f"https://d0000d.com{pass_md5}", headers=headers)
         response_page = urllib.request.urlopen(req)
         content_link = f"{response_page.read().decode('utf-8')}{''.join(choices(ascii_letters + digits, k=10))}?token={token}&expiry={int(time() * 1000)}"
+    elif provider == "Vidmoly":
+        match = VIDMOLY_PATTERN.search(decoded_html)
+        content_link = match.group("url")
+        print(content_link)
+        if content_link is None:
+            logger.error(f"Failed to find the video link of provider Vidmoly")
     logger.debug(f"Found the following video link of {provider}: {content_link}")
     return content_link
 
