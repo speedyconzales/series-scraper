@@ -4,6 +4,7 @@ import sys
 import urllib.request
 import zipfile
 
+from base64 import b64decode
 from random import choices
 from string import ascii_letters, digits
 from time import time
@@ -62,7 +63,7 @@ def get_voe_content_link_with_selenium(provider_url):
         driver.quit()
         return content_link
     voe_play_div = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'voe-play'))
+        EC.presence_of_element_located((By.CSS_SELECTOR, "[aria-label='Play']"))
     )
     voe_play_div.click()
     video_in_media_provider = WebDriverWait(driver, 10).until(
@@ -79,6 +80,13 @@ def voe_pattern_search(decoded_html):
             continue
         content_link = match.group("url")
         if content_link_is_not_valid(content_link):
+            try:
+                content_link = b64decode(content_link).decode()
+                if content_link_is_not_valid(content_link):
+                    continue
+                return content_link
+            except Exception:
+                pass
             continue
         return content_link
 
