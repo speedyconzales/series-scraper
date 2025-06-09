@@ -20,7 +20,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.service import Service as ChromeService
 
-from src.episode_link_grabber import get_href_by_language, get_bs_href_by_language
+from src.episode_link_grabber import get_href_by_language, get_bs_href_by_language, ProviderError
 from src.logger import logger
 
 DOODSTREAM_PATTERN = re.compile(r"/pass_md5/[\w-]+/(?P<token>[\w-]+)")
@@ -195,7 +195,11 @@ def find_bs_link_to_episode(url, provider):
         sb.open(url)
         sb.click('.cc-compliance a')
         sb.click('.hoster-player .play')
-        if provider == "VOE":
+        if provider == "Vidmoly":
+            raise ProviderError(
+            logger.error(f"Provider '{provider} is not supported by this script on bs.to yet.")
+            )
+        elif provider == "VOE":
             content_link = sb.wait_for_element_visible('.hoster-player a', timeout=240).get_attribute("href")
         elif provider == "Doodstream":
             sb.switch_to_tab(1, timeout=240)
