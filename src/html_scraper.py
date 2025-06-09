@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import sys
@@ -64,13 +65,36 @@ def get_voe_content_link_with_selenium(provider_url):
         driver.quit()
         return content_link
     voe_play_div = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "[aria-label='Play']"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, "img.icon"))
     )
     voe_play_div.click()
-    video_in_media_provider = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, 'media-provider video source'))
+    WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+    driver.switch_to.window(driver.window_handles[0])
+    script_tag = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, 'script[type="application/json"]'))
     )
-    content_link = video_in_media_provider.get_attribute('src')
+    gibberish = script_tag.get_attribute('innerHTML')
+    def rot13_decode(s: str) -> str:
+        result = []
+        for c in s:
+            if 'A' <= c <= 'Z':
+                result.append(chr((ord(c) - ord('A') + 13) % 26 + ord('A')))
+            elif 'a' <= c <= 'z':
+                result.append(chr((ord(c) - ord('a') + 13) % 26 + ord('a')))
+            else:
+                result.append(c)
+        return ''.join(result)
+
+    def shift_characters(s: str, offset: int) -> str:
+        return ''.join(chr(ord(c) - offset) for c in s)
+    step1 = rot13_decode(gibberish)
+    step2 = step1.replace('_', '')
+    step3 = b64decode(step2).decode('utf-8')
+    step4 = shift_characters(step3, 3)
+    step5 = step4[::-1]
+    decoded = b64decode(step5).decode('utf-8')
+    parsed_json = json.loads(decoded)
+    content_link = parsed_json['source']
     driver.quit()
     return content_link
 
@@ -126,7 +150,6 @@ def find_content_url(url, provider):
     elif provider == "Vidmoly":
         match = VIDMOLY_PATTERN.search(decoded_html)
         content_link = match.group("url")
-        print(content_link)
         if content_link is None:
             logger.error(f"Failed to find the video link of provider Vidmoly")
     elif provider == "SpeedFiles":
