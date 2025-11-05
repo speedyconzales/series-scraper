@@ -102,4 +102,4 @@ headless and completely automated scraping of the following sites:
 |  `-a, --anime`   | Declare this content as anime. Only useful for `bs.to` as it does not distinguish between series and anime on the site                                                                                                                                                                                                                                                         |
 
 ## Credits
-- [wolfswolke](https://github.com/wolfswolke) for the continuous implementation of [aniworld_scraper](https://github.com/wolfswolke/aniworld_scraper)
+- [wolfswolke](https://github.com/wolfswolke) for the implementation of archived [aniworld_scraper](https://github.com/wolfswolke/aniworld_scraper)
