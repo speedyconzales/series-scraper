@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import urllib.request
+import urllib.response
 import zipfile
 
 from base64 import b64decode
@@ -30,19 +31,19 @@ STREAMTAPE_PATTERN = re.compile(r"get_video\?id=[^&\'\s]+&expires=[^&\'\s]+&ip=[
 VIDMOLY_PATTERN = re.compile(r"sources: \[{file:\"(?P<url>.*?)\"}]")
 SPEEDFILES_PATTERN = re.compile(r"var _0x5opu234 = \"(?P<content>.*?)\";")
 
-def get_episode_link(url, language, provider, season, episode, burning_series):
-    if burning_series:
+def get_episode_link(url, language, provider, season, episode, site):
+    if site == "bs.to":
         href_value = get_bs_href_by_language(url, language, provider, season, episode)
     else:
         if season > 0:
             html_response = urllib.request.urlopen(f"{url}staffel-{season}/episode-{episode}")
         else:
             html_response = urllib.request.urlopen(f"{url}filme/film-{episode}")
-        href_value = get_href_by_language(html_response, language, provider, season, episode)
+        href_value = get_href_by_language(html_response, language, provider, season, episode, site)
     parsed_url = urlsplit(url)
     base_url = urlunsplit((parsed_url.scheme, parsed_url.hostname, "", "", ""))
     link_to_episode = base_url + href_value
-    if burning_series:
+    if site == "bs.to":
         link_to_episode = find_bs_link_to_episode(link_to_episode, provider)
     logger.debug(f"Link to episode is: {link_to_episode}")
     return link_to_episode
@@ -123,8 +124,15 @@ def find_content_url(url, provider):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
     req = urllib.request.Request(url, headers=headers)
-    decoded_html = urllib.request.urlopen(req).read().decode("utf-8")
-    if provider == "Vidoza":
+    response = urllib.request.urlopen(req)
+    decoded_html = response.read().decode("utf-8")
+    if provider == "LoadX":
+        video_id = response.url.split("/")[-1]
+        content_link = f"https://{provider.lower()}.ws/player/index.php?data={video_id}&do=getVideo"
+        post_url = urllib.request.Request(content_link, headers={"X-Requested-With": "XMLHttpRequest"}, method="POST")
+        post_response = urllib.request.urlopen(post_url)
+        content_link = json.loads(post_response.read().decode("utf-8")).get("videoSource")
+    elif provider == "Vidoza":
         soup = BeautifulSoup(decoded_html, features="html.parser")
         content_link = soup.find("source").get("src")
     elif provider == "VOE":
@@ -214,12 +222,12 @@ def find_bs_link_to_episode(url, provider):
     return content_link
 
 
-def get_seasons(url_path, burning_series=False) -> list:
+def get_seasons(url_path, site) -> list:
     logger.debug(f"Site URL is: {url_path}")
     counter_seasons = 1
     html_page = urllib.request.urlopen(url_path, timeout=50)
     soup = BeautifulSoup(html_page, features="html.parser")
-    if burning_series:
+    if site == "bs.to":
         for li in soup.findAll("li"):
             season = str(li.get("class"))
             if f"s{counter_seasons}" in season:
@@ -233,9 +241,9 @@ def get_seasons(url_path, burning_series=False) -> list:
     return seasons
 
 
-def get_episodes(url_path, season, burning_series=False) -> list:
+def get_episodes(url_path, season, site) -> list:
     counter_episodes = 1
-    if burning_series:
+    if site == "bs.to":
         url = f"{url_path}{season}/"
         html_page = urllib.request.urlopen(url, timeout=50)
         soup = BeautifulSoup(html_page, features="html.parser")
