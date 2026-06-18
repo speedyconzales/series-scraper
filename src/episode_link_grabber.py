@@ -41,7 +41,7 @@ def get_bs_href_by_language(url, language, provider, season, episode):
     )
 
 
-def get_href_by_language(html_response, language, provider, season, episode):
+def get_href_by_language(html_response, language, provider, season, episode, site):
     soup = BeautifulSoup(html_response, "html.parser")
     language_mapping = {
         "Deutsch": 1,
@@ -49,20 +49,43 @@ def get_href_by_language(html_response, language, provider, season, episode):
         "Eng-Sub": 2,
         "English": 2,
     }
-    matching_li_elements = soup.find_all("li", {"data-lang-key": language_mapping.get(language)})
-    if not matching_li_elements:
-        raise LanguageError(logger.error(f"Episode {episode} in season {season} does not support language '{language}'."))
-    provider_li_element = next(
-        (
-            li_element
-            for li_element in matching_li_elements
-            if li_element.find("h4").get_text() == provider
-        ),
-        None,
-    )
-    if provider_li_element:
-        href = provider_li_element.get("data-link-target", "")
-        return href
-    raise ProviderError(
-        logger.error(f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language '{language}'")
-    )
+    if site == "s.to":
+        language_buttons = soup.find_all(
+            "button",
+            {"data-language-id": str(language_mapping.get(language))},
+        )
+        if not language_buttons:
+            raise LanguageError(
+                logger.error(
+                    f"Episode {episode} in season {season} does not support language '{language}'."
+                )
+            )
+        for button in language_buttons:
+            if button.get("data-provider-name") == provider:
+                play_url = button.get("data-play-url", "")
+                if play_url:
+                    return play_url
+
+        raise ProviderError(
+            logger.error(
+                f"Provider '{provider}' does not have a download for episode '{episode}' season '{season}' in language '{language}'."
+            )
+        )
+    else:
+        matching_li_elements = soup.find_all("li", {"data-lang-key": language_mapping.get(language)})
+        if not matching_li_elements:
+            raise LanguageError(logger.error(f"Episode {episode} in season {season} does not support language '{language}'."))
+        provider_li_element = next(
+            (
+                li_element
+                for li_element in matching_li_elements
+                if li_element.find("h4").get_text() == provider
+            ),
+            None,
+        )
+        if provider_li_element:
+            href = provider_li_element.get("data-link-target", "")
+            return href
+        raise ProviderError(
+            logger.error(f"Provider '{provider} does not have a download for episode '{episode}' season '{season}' in language '{language}'")
+        )

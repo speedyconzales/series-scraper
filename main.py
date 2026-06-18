@@ -33,7 +33,7 @@ def check_episodes(
     episodes,
     language,
     provider,
-    burning_series,
+    site,
 ):
     provider_episodes = []
     language_episodes = []
@@ -44,7 +44,7 @@ def check_episodes(
         if not already_downloaded(file_name):
             check_active_threads(future_list, concurrent_downloads)
             try:
-                episode_link = get_episode_link(url, language, provider, season, episode, burning_series)
+                episode_link = get_episode_link(url, language, provider, season, episode, site)
             except LanguageError:
                 language_episodes.append(episode)
                 continue
@@ -67,7 +67,7 @@ def check_episodes(
 
 
 def main():
-    language, url, output_path, content_name, seasons, desired_episodes, provider, threads, burning_series = (
+    language, url, output_path, content_name, seasons, desired_episodes, provider, threads, site = (
         ArgumentParser.language,
         ArgumentParser.url,
         ArgumentParser.output_path,
@@ -76,23 +76,23 @@ def main():
         ArgumentParser.episodes,
         ArgumentParser.provider,
         ArgumentParser.threads,
-        ArgumentParser.burning_series,
+        ArgumentParser.site,
     )
 
     logger.info("------------- Series-Scraper started ------------")
 
     os.makedirs(output_path, exist_ok=True)
 
-    providers = ["Vidmoly", "SpeedFiles", "Doodstream", "Streamtape", "Vidoza", "VOE"] if not provider else provider
+    providers = ["Vidmoly", "SpeedFiles", "Doodstream", "Streamtape", "Vidoza", "VOE", "LoadX"] if not provider else provider
 
     for season in seasons:
         season_path = f"{output_path}/Season {season:02}"
         os.makedirs(season_path, exist_ok=True)
-        if season > 0 or burning_series:
-            episodes = desired_episodes if desired_episodes else get_episodes(url, season, burning_series)
+        if season > 0 or site == "bs.to":
+            episodes = desired_episodes if desired_episodes else get_episodes(url, season, site)
         else:
             episodes = desired_episodes if desired_episodes else get_specials(url)
-        logger.info(f"Season {season} has {len(get_episodes(url, season, burning_series)) if season > 0 or burning_series else len(get_specials(url))} Episodes.")
+        logger.info(f"Season {season} has {len(get_episodes(url, season, site)) if season > 0 or site == "bs.to" else len(get_specials(url))} Episodes.")
         failed_episodes = []
         for provider in providers:
             with concurrent.futures.ThreadPoolExecutor(
@@ -108,7 +108,7 @@ def main():
                     episodes,
                     language,
                     provider,
-                    burning_series,
+                    site,
                 )
                 failed_episodes.extend(language_episodes)
                 for future in concurrent.futures.as_completed(future_list):
