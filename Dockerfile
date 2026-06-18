@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/baseimage-alpine:3.19
+FROM ghcr.io/linuxserver/baseimage-alpine:edge
 LABEL org.opencontainers.image.source="https://github.com/speedyconzales/series-scraper"
 
 WORKDIR /app
